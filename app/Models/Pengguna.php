@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Laravel\Sanctum\HasApiTokens;
 
 class Pengguna extends Authenticatable
 {
     use HasFactory;
+    use HasApiTokens;
 
     protected $table = 'pengguna';
 
@@ -18,7 +20,9 @@ class Pengguna extends Authenticatable
         'alamat',
         'password',
         'peran',
-        'status'
+        'status',
+        'latitude',
+        'longitude'
     ];
 
     protected $hidden = [
@@ -52,4 +56,7 @@ class Pengguna extends Authenticatable
     {
         return $query->where('peran', 'pelanggan');
     }
+
+    
 }
+

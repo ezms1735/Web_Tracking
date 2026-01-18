@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('driver_id')->constrained('pengguna')->onDelete('cascade');
             $table->enum('status_pengiriman', ['belum_dikirim', 'proses', 'selesai']);
             $table->dateTime('waktu_mulai');
-            $table->dateTime('waktu_selesai');
+            $table->dateTime('waktu_selesai')->nullable();
             $table->timestamps();
         });
 

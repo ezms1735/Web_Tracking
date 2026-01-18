@@ -13,14 +13,20 @@
             🏠 Dashboard
         </a>
 
+        {{-- PEMANTAUAN PENGIRIMAN - DIPAKSA SATU BARIS --}}
+        <a href="{{ route('admin.pemantauan') }}"
+           class="flex items-center gap-3 px-4 py-2 rounded hover:bg-blue-100 whitespace-nowrap overflow-hidden">
+            📍 Pemantauan Pengiriman
+        </a>
+
         <a href="{{ route('admin.driver.index') }}"
            class="flex items-center gap-3 px-4 py-2 rounded hover:bg-blue-100">
-            🚚 Driver
+            🚚 Manajemen Driver
         </a>
 
         <a href="{{ route('admin.pelanggan.index') }}"
            class="flex items-center gap-3 px-4 py-2 rounded hover:bg-blue-100">
-            👤 Pelanggan
+            👤 Manajemen Pelanggan
         </a>
 
         <a href="{{ route('admin.pesanan.index') }}"

@@ -88,4 +88,28 @@ class DriverController extends Controller
         $driver->update(['status' => 'nonaktif']);
         return back()->with('success', 'Driver berhasil dinonaktifkan');
     }
+
+    public function editModal($id)
+{
+    $driver = Driver::findOrFail($id);
+    return view('admin.driver.partials.edit-modal', compact('driver'));
+}
+
+public function detailModal($id)
+{
+    $driver = Driver::findOrFail($id);
+    return view('admin.driver.partials.detail-modal', compact('driver'));
+}
+public function pesanan(Request $request)
+{
+    $driver = $request->user();
+    $pesanan = $driver->pesananSebagaiDriver()->with('pelanggan')->get();
+
+    return response()->json([
+        'success' => true,
+        'pesanan' => $pesanan
+    ]);
+}
+
+
 }

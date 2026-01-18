@@ -10,10 +10,14 @@ class AdminMiddleware
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->peran === 'admin') {
-            return $next($request);
+        if (!auth()->check()) {
+            return redirect()->route('login');
         }
 
-        abort(403, 'Akses ditolak');
+        if (auth()->user()->peran !== 'admin') {
+            abort(403, 'Akses ditolak');
+        }
+
+        return $next($request);
     }
 }
