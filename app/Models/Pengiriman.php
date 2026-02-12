@@ -14,6 +14,8 @@ class Pengiriman extends Model
         'status_pengiriman',
         'waktu_mulai',
         'waktu_selesai',
+        'jumlah_terkirim',
+        'bukti_foto',
     ];
 
     protected $casts = [

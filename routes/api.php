@@ -6,17 +6,12 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DriverPengirimanController;
 use App\Http\Controllers\Api\AdminController;
 
+Route::post('/login', [AuthController::class, 'login']);
 
-// 🔓 TANPA LOGIN
-Route::post('/login', [AuthController::class, 'login']); // POST login untuk mobile
-
-// 🔐 DENGAN LOGIN (SANCTUM)
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Logout
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    // Ambil data user
     Route::get('/user', function (Request $request) {
         return response()->json([
             'success' => true,
@@ -24,12 +19,23 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
     });
 
-    Route::post('/admin/assign-driver', [AdminController::class, 'assignDriver']);
+    Route::prefix('driver')->group(function () {
 
+        Route::post('/lokasi', [DriverPengirimanController::class, 'updateLokasi']);
 
-    // 🚚 Lokasi driver
-    Route::post('/driver/lokasi', [DriverPengirimanController::class, 'updateLokasi']);
+        Route::get('/pesanan', [DriverPengirimanController::class, 'pesanan']);
 
-    // 📦 Pesanan driver
-    Route::get('/driver/pesanan', [DriverPengirimanController::class, 'pesanan']);
+        Route::get('/pesanan/{id}', [DriverPengirimanController::class, 'showPesanan']);
+        Route::get('/pesanan/{id}/mulai', [DriverPengirimanController::class, 'mulaiPengiriman']);
+        Route::get('/pesanan/{id}/selesai', [DriverPengirimanController::class, 'selesaiPengiriman']);
+        Route::get('/pesanan/{id}/bukti', [DriverPengirimanController::class, 'buktiPengiriman']);
+  
+    });
+
+    Route::prefix('admin')->group(function () {
+        Route::post('/assign-driver', [AdminController::class, 'assignDriver']);
+        
+        Route::get('/pesanan', [AdminController::class, 'pesananAll']);
+        Route::get('/pesanan/{id}', [AdminController::class, 'showPesanan']);
+    });
 });

@@ -7,17 +7,43 @@ use App\Models\Pengiriman;
 use App\Models\Pesanan;
 use App\Models\Pengguna;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PengirimanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pengiriman = Pengiriman::with([
+        $query = Pengiriman::with([
             'pesanan.pelanggan',
             'driver'
-        ])->latest()->get();
+        ])->latest();
 
-        return view('admin.pengiriman.index', compact('pengiriman'));
+        // Filter hari, bulan, tahun (opsional, jarang digunakan)
+        if ($request->filled('tanggal') && is_numeric($request->tanggal)) {
+            $query->whereDay('created_at', $request->tanggal);
+        }
+
+        if ($request->filled('bulan') && is_numeric($request->bulan)) {
+            $query->whereMonth('created_at', $request->bulan);
+        }
+
+        if ($request->filled('tahun') && is_numeric($request->tahun)) {
+            $query->whereYear('created_at', $request->tahun);
+        }
+
+        $pengiriman = $query->paginate(10);
+
+        $daftarTahun = Pengiriman::select(DB::raw('YEAR(created_at) as tahun'))
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun')
+            ->toArray();
+
+        if (empty($daftarTahun)) {
+            $daftarTahun = [now()->year];
+        }
+
+        return view('admin.pengiriman.index', compact('pengiriman', 'daftarTahun'));
     }
 
     public function create()
@@ -34,19 +60,30 @@ class PengirimanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'pesanan_id' => 'required|exists:pesanan,id',
-            'driver_id'  => 'required|exists:pengguna,id',
+            'pesanan_id'       => 'required|exists:pesanan,id',
+            'driver_id'        => 'required|exists:pengguna,id',
+            'jumlah_terkirim'  => 'nullable|integer|min:0',
+            'bukti_foto'       => 'nullable|image|max:2048', 
         ]);
 
-        Pengiriman::create([
-            'pesanan_id'       => $request->pesanan_id,
-            'driver_id'        => $request->driver_id,
-            'status_pengiriman'=> 'belum_dikirim',
-            'waktu_mulai'      => now(),
-            'waktu_selesai'    => null,
-        ]);
+        $data = [
+            'pesanan_id'        => $request->pesanan_id,
+            'driver_id'         => $request->driver_id,
+            'status_pengiriman' => 'belum_dikirim',
+            'waktu_mulai'       => now(),
+            'waktu_selesai'     => null,
+            'jumlah_terkirim'   => $request->jumlah_terkirim ?? 0,
+        ];
 
-        // Pesanan masuk proses
+        // Upload bukti foto jika ada
+        if ($request->hasFile('bukti_foto')) {
+            $data['bukti_foto'] = $request->file('bukti_foto')
+                ->store('bukti_pengiriman', 'public');
+        }
+
+        Pengiriman::create($data);
+
+        // Ubah status pesanan menjadi proses
         Pesanan::where('id', $request->pesanan_id)
             ->update(['status_pesanan' => 'proses']);
 
@@ -56,11 +93,13 @@ class PengirimanController extends Controller
 
     public function show(Pengiriman $pengiriman)
     {
+        $pengiriman->load(['pesanan.pelanggan', 'driver']); // pastikan relasi ter-load
         return view('admin.pengiriman.show', compact('pengiriman'));
     }
 
     public function edit(Pengiriman $pengiriman)
     {
+        $pengiriman->load(['pesanan', 'driver']);
         return view('admin.pengiriman.edit', compact('pengiriman'));
     }
 
@@ -68,17 +107,23 @@ class PengirimanController extends Controller
     {
         $request->validate([
             'status_pengiriman' => 'required|in:belum_dikirim,proses,selesai',
+            'jumlah_terkirim'   => 'nullable|integer|min:0',
+            'bukti_foto'        => 'nullable|image|max:2048',
         ]);
 
-        $data = [
-            'status_pengiriman' => $request->status_pengiriman,
-        ];
+        $data = $request->only('status_pengiriman', 'jumlah_terkirim');
 
-        // Jika pengiriman selesai
+        // Upload bukti foto baru jika ada (opsional overwrite)
+        if ($request->hasFile('bukti_foto')) {
+            $data['bukti_foto'] = $request->file('bukti_foto')
+                ->store('bukti_pengiriman', 'public');
+        }
+
+        // Jika status diubah menjadi selesai
         if ($request->status_pengiriman === 'selesai') {
             $data['waktu_selesai'] = now();
 
-            // Sinkronkan pesanan
+            // Sinkronkan status pesanan ke selesai
             $pengiriman->pesanan->update([
                 'status_pesanan' => 'selesai'
             ]);

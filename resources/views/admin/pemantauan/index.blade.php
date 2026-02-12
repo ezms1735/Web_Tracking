@@ -102,34 +102,102 @@
         crossorigin=""></script>
 
 <script>
-    var map = L.map('map').setView([-7.75, 111.65], 11);
+    const firebaseConfig = {
+        apiKey: "AIzaSyDxgGDwbLNCZeAyX3inFjsyG9BvM_Nkiag",
+        authDomain: "moyakristal-1a81e.firebaseapp.com",
+        databaseURL: "https://moyakristal-1a81e-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "moyakristal-1a81e",
+        storageBucket: "moyakristal-1a81e.firebasestorage.app",
+        messagingSenderId: "1001114808948",
+        appId: "1:1001114808948:web:c48552264371717b3cd721"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    var map = L.map('map').setView([-7.629, 111.52], 11);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    var markersData = @json($markers);
+    var driverMarkers = {};
+    var driverInfo = {};
 
-    if (markersData.length > 0) {
-        var markerGroup = [];
-        markersData.forEach(function(driver) {
-            if (driver.lat && driver.lng) {
-                var marker = L.marker([driver.lat, driver.lng])
+    var initialData = @json($markers);
+
+    initialData.forEach(function(item) {
+        var driverId = item.id || String(item.nama).replace(/\D/g, '') || 'unknown';
+
+        if (item.lat && item.lng) {
+            var marker = L.marker([item.lat, item.lng])
+                .addTo(map)
+                .bindPopup(`
+                    <b>${item.nama}</b><br>
+                    Sedang mengantar ${item.jumlah} tugas<br>
+                    <small>Loading realtime...</small>
+                `);
+
+            driverMarkers[driverId] = marker;
+            driverInfo[driverId] = {
+                nama: item.nama,
+                jumlah: item.jumlah
+            };
+        }
+    });
+
+    if (Object.keys(driverMarkers).length > 0) {
+        var group = L.featureGroup(Object.values(driverMarkers));
+        map.fitBounds(group.getBounds().pad(0.4));
+    }
+
+    const driversRef = db.ref('drivers');
+
+    driversRef.on('value', (snapshot) => {
+        const drivers = snapshot.val() || {};
+
+        Object.keys(drivers).forEach(driverId => {
+            const data = drivers[driverId];
+            if (!data?.latitude || !data?.longitude) return;
+
+            const lat = parseFloat(data.latitude);
+            const lng = parseFloat(data.longitude);
+            if (isNaN(lat) || isNaN(lng)) return;
+
+            const info = driverInfo[driverId] || { nama: `Driver ${driverId}`, jumlah: '?' };
+            const timeStr = data.updated_at 
+                ? new Date(data.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute:'2-digit'})
+                : 'unknown';
+
+            const popup = `
+                <b>${info.nama}</b><br>
+                Sedang mengantar ${info.jumlah} tugas<br>
+                <small>Update: ${timeStr}</small>
+            `;
+
+            if (driverMarkers[driverId]) {
+                driverMarkers[driverId].setLatLng([lat, lng]);
+                driverMarkers[driverId].setPopupContent(popup);
+            } else {
+                const marker = L.marker([lat, lng])
                     .addTo(map)
-                    .bindPopup(`
-                        <b>${driver.nama}</b><br>
-                        Sedang mengantar ${driver.jumlah} tugas
-                    `);
-                markerGroup.push(marker);
+                    .bindPopup(popup);
+                driverMarkers[driverId] = marker;
+                driverInfo[driverId] = info;
             }
         });
 
-        if (markerGroup.length > 0) {
-            var group = new L.featureGroup(markerGroup);
-            map.fitBounds(group.getBounds().pad(0.5));
-        }
-    }
-    // Jika tidak ada driver aktif → peta tetap kosong
+        // Hapus marker yang sudah tidak ada di Firebase (opsional)
+        Object.keys(driverMarkers).forEach(id => {
+            if (!drivers[id]) {
+                map.removeLayer(driverMarkers[id]);
+                delete driverMarkers[id];
+                delete driverInfo[id];
+            }
+        });
+    }, (error) => {
+        console.error('Firebase realtime error:', error);
+    });
 </script>
 
 <style>

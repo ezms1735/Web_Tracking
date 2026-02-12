@@ -9,12 +9,11 @@ use App\Models\Pengiriman;
 
 class DriverPengirimanController extends Controller
 {
-    // Ambil pesanan driver yang ditugaskan
     public function pesanan(Request $request)
     {
         $driver = $request->user();
 
-        $pesanan = Pengiriman::with('pesanan') // join pengiriman + pesanan
+        $pesanan = Pengiriman::with('pesanan') 
             ->where('driver_id', $driver->id)
             ->get()
             ->map(function($p) {
@@ -31,6 +30,23 @@ class DriverPengirimanController extends Controller
             'pesanan' => $pesanan,
         ]);
     }
+
+public function showPesanan($id)
+{
+    $driverId = auth()->id();
+
+    $pengiriman = Pengiriman::with([
+            'pesanan.pelanggan'
+        ])
+        ->where('driver_id', $driverId)
+        ->where('pesanan_id', $id)
+        ->firstOrFail();
+
+    return response()->json([
+        'success' => true,
+        'pesanan' => $pengiriman->pesanan,
+    ]);
+}
 
 
     // Update lokasi driver
@@ -61,7 +77,6 @@ class DriverPengirimanController extends Controller
                 ]);
         } catch (\Throwable $e) {
             \Log::error('Firebase update lokasi error: ' . $e->getMessage());
-            // Jangan return error, lokasi DB sudah tersimpan
         }
 
         return response()->json([

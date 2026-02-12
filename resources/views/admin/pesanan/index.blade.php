@@ -4,9 +4,48 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">Data Pesanan</h1>
         <a href="{{ route('admin.pesanan.create') }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition shadow">
+           class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg transition shadow ml-90">
             + Tambah Pesanan
         </a>
+
+    <!-- Form Filter -->
+            <form method="GET" class="flex flex-wrap items-center gap-2 bg-white p-2 rounded-xl border border-gray-200 shadow-sm">
+                <!-- Tanggal -->
+                 <select name="tanggal" 
+                        class="bg-transparent border border-gray-300 rounded-lg text-gray-700 text-sm font-medium focus:ring-0 cursor-pointer px-3 py-1.5">
+                    <option value="">Semua Tanggal</option>
+                    @for ($i = 1; $i <= 31; $i++)
+                        <option value="{{ $i }}" {{ request('tanggal') == $i ? 'selected' : '' }}>
+                            {{ $i }}
+                        </option>
+                    @endfor
+                </select>
+                
+                <!-- Bulan -->
+                <select name="bulan" 
+                        class="bg-transparent border border-gray-300 rounded-lg text-gray-700 text-sm font-medium focus:ring-0 cursor-pointer px-3 py-1.5">
+                    <option value="">Semua Bulan</option>
+                    @for ($i = 1; $i <= 12; $i++)
+                        <option value="{{ $i }}" {{ request('bulan') == $i ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create(null, $i)->translatedFormat('F') }}
+                        </option>
+                    @endfor
+                </select>
+
+                <!-- Tahun -->
+                <select name="tahun" 
+                        class="bg-transparent border border-gray-300 rounded-lg text-gray-700 text-sm font-medium focus:ring-0 cursor-pointer px-3 py-1.5">
+                    <option value="">Semua Tahun</option>
+                    @foreach ($daftarTahun as $th)
+                        <option value="{{ $th }}" {{ request('tahun') == $th ? 'selected' : '' }}>{{ $th }}</option>
+                    @endforeach
+                </select>
+
+                <button type="submit" 
+                        class="bg-gray-800 hover:bg-black text-white px-4 py-1.5 rounded-lg font-medium transition text-sm">
+                    Filter
+                </button>
+            </form>
     </div>
 
     @if(session('success'))
@@ -24,8 +63,8 @@
                         <th class="px-6 py-4">No. Telepon</th>
                         <th class="px-6 py-4">Alamat</th>
                         <th class="px-6 py-4">Jumlah</th>
-                        <th class="px-6 py-4">Status</th>
-                        <th class="px-6 py-4">Aksi</th>
+                        <th class="px-6 py-4 text-center">Status</th>
+                        <th class="px-6 py-4 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -91,5 +130,11 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Pagination -->
+        <div class="px-6 py-4 border-t border-gray-200">
+            {{ $pesanan->appends(request()->query())->links('pagination::tailwind') }}
+        </div>
+
     </div>
 @endsection
