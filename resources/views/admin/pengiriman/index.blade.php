@@ -59,7 +59,7 @@
                 <thead class="bg-gray-50 text-gray-700 uppercase text-xs">
                     <tr>
                         <th class="px-6 py-4">Pelanggan</th>
-                        <th class="px-6 py-4">Alamat Pelanggan</th>
+                        <th class="px-6 py-4 text-center">Alamat</th>
                         <th class="px-6 py-4">Driver</th>
                         <th class="px-6 py-4">No. Driver</th>
                         <th class="px-6 py-4">Jumlah</th>
@@ -82,7 +82,7 @@
                         <td class="px-6 py-4">
                             {{ $p->driver->nomor_telepon }}
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 text-center">
                             {{ $p->pesanan->jumlah_pesanan }}
                         </td>
                        <td class="px-6 py-4 text-center">

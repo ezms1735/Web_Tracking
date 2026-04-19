@@ -10,7 +10,7 @@ class PelangganProfilController extends Controller
 {
     public function show()
     {
-        $pelanggan = Auth::user(); // asumsi model User atau Pelanggan
+        $pelanggan = Auth::user(); 
 
         return response()->json([
             'success' => true,

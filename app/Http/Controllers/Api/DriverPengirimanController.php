@@ -15,6 +15,7 @@ class DriverPengirimanController extends Controller
 
         $pesanan = Pengiriman::with('pesanan') 
             ->where('driver_id', $driver->id)
+            ->where('status_pengiriman', '!=', 'selesai') 
             ->get()
             ->map(function($p) {
                 return [
@@ -50,12 +51,6 @@ class DriverPengirimanController extends Controller
 
     public function kirimBukti(Request $request, $id)
     {
-    dd([
-        'request' => $request->all(),
-        'hasFile' => $request->hasFile('bukti_foto'),
-        'driver_login' => auth()->id(),
-        'pengiriman' => Pengiriman::where('pesanan_id', $id)->get()
-    ]);
         $request->validate([
             'bukti_foto' => 'required|image',
             'jumlah_terkirim' => 'required|integer',
@@ -77,6 +72,12 @@ class DriverPengirimanController extends Controller
         $pengiriman->status_pengiriman = 'selesai';
         $pengiriman->save();
 
+        $pesanan = Pesanan::find($id);
+        if ($pesanan) {
+            $pesanan->status_pesanan = 'selesai';
+            $pesanan->save();
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Bukti berhasil dikirim'
@@ -90,7 +91,7 @@ class DriverPengirimanController extends Controller
         $pengiriman = Pengiriman::with('pesanan.pelanggan')
             ->where('driver_id', $driver->id)
             ->where('status_pengiriman', 'selesai')
-            ->latest()
+            ->latest('waktu_selesai')
             ->get();
 
         return response()->json([
@@ -99,9 +100,10 @@ class DriverPengirimanController extends Controller
                 return [
                     'id' => $p->pesanan->id,
                     'jumlah_pesanan' => $p->pesanan->jumlah_pesanan,
-                    'status' => $p->status_pengiriman,
-                    'bukti_foto' => $p->bukti_foto,
                     'jumlah_terkirim' => $p->jumlah_terkirim,
+                    'bukti_foto' => $p->bukti_foto,
+                    'waktu_selesai' => $p->waktu_selesai, // ✅ tambah ini untuk grouping
+                    'pelanggan' => $p->pesanan->pelanggan, // ✅ tambah ini untuk nama, telp, alamat
                 ];
             }),
         ]);

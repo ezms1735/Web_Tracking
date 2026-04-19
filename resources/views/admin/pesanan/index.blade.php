@@ -61,7 +61,7 @@
                     <tr>
                         <th class="px-6 py-4">Pelanggan</th>
                         <th class="px-6 py-4">No. Telepon</th>
-                        <th class="px-6 py-4">Alamat</th>
+                        <th class="px-6 py-4 text-center">Alamat</th>
                         <th class="px-6 py-4">Jumlah</th>
                         <th class="px-6 py-4 text-center">Status</th>
                         <th class="px-6 py-4 text-center">Aksi</th>
@@ -79,7 +79,7 @@
                         <td class="px-6 py-4">
                             {{ $p->pelanggan->alamat }}
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 text-center">
                             {{ $p->jumlah_pesanan }}
                         </td>
                         <td class="px-6 py-4 text-center">

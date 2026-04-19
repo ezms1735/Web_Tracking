@@ -142,15 +142,5 @@ class PengirimanController extends Controller
         return back()->with('success', 'Pengiriman berhasil dihapus');
     }
 
-//     public function kirimNotifikasi($driver)
-// {
-//     $message = [
-//         "to" => $driver->expo_token,
-//         "sound" => "default",
-//         "title" => "Penugasan Baru",
-//         "body" => "Anda mendapat pengiriman baru"
-//     ];
 
-//     Http::post("https://exp.host/--/api/v2/push/send", $message);
-// }
 }

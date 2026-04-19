@@ -22,9 +22,9 @@
                 <thead class="bg-gray-50 text-gray-700 uppercase text-xs">
                     <tr>
                         <th class="px-6 py-4">Nama</th>
-                        <th class="px-6 py-4">Email</th>
+                        <th class="px-6 py-4 text-center">Email</th>
                         <th class="px-6 py-4">No. Telepon</th>
-                        <th class="px-6 py-4">Alamat</th>
+                        <th class="px-6 py-4 text-center">Alamat</th>
                         <th class="px-6 py-4 text-center">Status</th>
                         <th class="px-6 py-4 text-center">Aksi</th>
                     </tr>

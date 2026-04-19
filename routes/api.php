@@ -44,7 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/pesanan', [PelangganController::class, 'getPesananSaya']);
         Route::get('/profil', [PelangganProfilController::class, 'show']);
         Route::put('/profil', [PelangganProfilController::class, 'update']);
-    });
+        Route::get('/riwayat', [PelangganController::class, 'riwayat']);    });
 
     Route::prefix('admin')->group(function () {
         Route::post('/assign-driver', [AdminController::class, 'assignDriver']);

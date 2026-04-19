@@ -31,7 +31,7 @@ class LaporanController extends Controller
                 'nama'              => $driver->nama_lengkap ?? 'Driver Tidak Diketahui',
                 'total_pelanggan'   => $group->pluck('pesanan.pelanggan_id')->unique()->count(),
                 'total_pengiriman'  => $group->count(),
-                'waktu_terakhir'    => $group->max('waktu_selesai'), // RAW DATE
+                'waktu_terakhir'    => $group->max('waktu_selesai'), 
             ];
         })->values();
 

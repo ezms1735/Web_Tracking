@@ -57,7 +57,13 @@
                     @forelse($laporanPerDriver ?? [] as $item)
                     <tr class="hover:bg-gray-50 transition">
                         
-                        <td class="px-6 py-4 font-medium">
+                         <td class="px-6 py-4 text-gray-500 italic">
+                            {{ $item->waktu_terakhir 
+                                ? Carbon::parse($item->waktu_terakhir)->translatedFormat('d M Y') 
+                                : '-' }}
+                        </td>
+
+                        <td class="px-6 py-4 font-medium text-center">
                             {{ $item->nama }}
                         </td>
 
@@ -69,17 +75,11 @@
                             <span class="font-semibold">{{ $item->total_pengiriman }}</span>
                         </td>
 
-                        <td class="px-6 py-4 text-center text-gray-500 italic">
-                            {{ $item->waktu_terakhir 
-                                ? Carbon::parse($item->waktu_terakhir)->translatedFormat('d M Y') 
-                                : '-' }}
-                        </td>
-
                         <td class="px-6 py-4 text-center">
                             <div class="flex items-center justify-center gap-2">
                                 
                                 {{-- ✅ TOMBOL DETAIL (SUDAH FIX) --}}
-                                <a href="{{ route('admin.laporan.detail', $item->id) }}" 
+                                <a href="{{ route('admin.laporan.detail', $item->driver_id) }}" 
                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition">
                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>

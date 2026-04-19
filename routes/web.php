@@ -72,8 +72,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Laporan
         Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
-        Route::get('/laporan/{driver}', [LaporanController::class, 'detail'])->name('laporan.detail');
         Route::get('/laporan/download', [LaporanController::class, 'downloadExcel'])->name('laporan.download');
+        Route::get('/laporan/{driver}', [LaporanController::class, 'detail'])->name('laporan.detail');
     });
 
 

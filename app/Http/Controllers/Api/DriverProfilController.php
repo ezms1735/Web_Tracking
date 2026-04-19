@@ -18,7 +18,7 @@ class DriverProfilController extends Controller
                 'id'            => $driver->id,
                 'nama_lengkap'  => $driver->nama_lengkap ?? $driver->name,
                 'email'         => $driver->email,
-                'telepon'       => $driver->telepon ?? $driver->phone,
+                'nomor_telepon' => $driver->nomor_telepon ?? $driver->phone,
                 'alamat'        => $driver->alamat ?? '',
             ]
         ]);
