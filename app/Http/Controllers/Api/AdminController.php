@@ -24,8 +24,8 @@ class AdminController extends Controller
             ], 404);
         }
 
-        $pesanan->driver_id = $request->driver_id; // wajib
-        $pesanan->status_pesanan = 'proses'; // opsional
+        $pesanan->driver_id = $request->driver_id; 
+        $pesanan->status_pesanan = 'proses'; 
         $pesanan->save();
 
 

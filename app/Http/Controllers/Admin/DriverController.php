@@ -90,26 +90,27 @@ class DriverController extends Controller
     }
 
     public function editModal($id)
-{
-    $driver = Driver::findOrFail($id);
-    return view('admin.driver.partials.edit-modal', compact('driver'));
-}
+    {
+        $driver = Pengguna::findOrFail($id);
+        return view('admin.driver.partials.edit-modal', compact('driver'));
+    }
 
-public function detailModal($id)
-{
-    $driver = Driver::findOrFail($id);
-    return view('admin.driver.partials.detail-modal', compact('driver'));
-}
-public function pesanan(Request $request)
-{
-    $driver = $request->user();
-    $pesanan = $driver->pesananSebagaiDriver()->with('pelanggan')->get();
+    public function detailModal($id)
+    {
+        $driver = Pengguna::findOrFail($id);
+        return view('admin.driver.partials.detail-modal', compact('driver'));
+    }
+    
+    public function pesanan(Request $request)
+    {
+        $driver = $request->user();
+        $pesanan = $driver->pesananSebagaiDriver()->with('pelanggan')->get();
 
-    return response()->json([
-        'success' => true,
-        'pesanan' => $pesanan
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'pesanan' => $pesanan
+        ]);
+    }
 
 
 }

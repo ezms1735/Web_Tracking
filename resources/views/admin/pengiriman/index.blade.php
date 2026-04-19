@@ -85,14 +85,12 @@
                         <td class="px-6 py-4">
                             {{ $p->pesanan->jumlah_pesanan }}
                         </td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="inline-block px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap
-                                {{ $p->status_pengiriman == 'selesai' ? 'bg-green-100 text-green-700' :
-                                   ($p->status_pengiriman == 'dalam perjalanan' ? 'bg-blue-100 text-blue-700' :
-                                   ($p->status_pengiriman == 'proses' ? 'bg-yellow-100 text-yellow-700' :
-                                   ($p->status_pengiriman == 'belum_dikirim' ? 'bg-gray-200 text-gray-800' :
-                                   'bg-red-100 text-red-700'))) }}">
-                                {{ ucfirst(str_replace('_', ' ', $p->status_pengiriman)) }}
+                       <td class="px-6 py-4 text-center">
+                            <span class="inline-block px-3 py-1.5 rounded-full text-xs font-medium
+                                {{ $p->status_pengiriman == 'selesai' 
+                                    ? 'bg-green-100 text-green-700' 
+                                    : 'bg-yellow-100 text-yellow-700' }}">
+                                {{ ucfirst($p->status_pengiriman) }}
                             </span>
                         </td>
                         <td class="px-6 py-4 text-center">

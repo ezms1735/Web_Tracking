@@ -69,7 +69,7 @@ class PengirimanController extends Controller
         $data = [
             'pesanan_id'        => $request->pesanan_id,
             'driver_id'         => $request->driver_id,
-            'status_pengiriman' => 'belum_dikirim',
+            'status_pengiriman' => 'proses',
             'waktu_mulai'       => now(),
             'waktu_selesai'     => null,
             'jumlah_terkirim'   => $request->jumlah_terkirim ?? 0,
@@ -106,7 +106,7 @@ class PengirimanController extends Controller
     public function update(Request $request, Pengiriman $pengiriman)
     {
         $request->validate([
-            'status_pengiriman' => 'required|in:belum_dikirim,proses,selesai',
+            'status_pengiriman' => 'required|in:proses,selesai',
             'jumlah_terkirim'   => 'nullable|integer|min:0',
             'bukti_foto'        => 'nullable|image|max:2048',
         ]);
@@ -141,4 +141,16 @@ class PengirimanController extends Controller
 
         return back()->with('success', 'Pengiriman berhasil dihapus');
     }
+
+//     public function kirimNotifikasi($driver)
+// {
+//     $message = [
+//         "to" => $driver->expo_token,
+//         "sound" => "default",
+//         "title" => "Penugasan Baru",
+//         "body" => "Anda mendapat pengiriman baru"
+//     ];
+
+//     Http::post("https://exp.host/--/api/v2/push/send", $message);
+// }
 }

@@ -22,40 +22,44 @@ class LaporanController extends Controller
             ->whereYear('waktu_selesai', $tahun)
             ->get();
 
-        $laporanPerDriver = $pengiriman->groupBy('driver_id')->map(function ($group) use ($bulan, $tahun) {
+        $laporanPerDriver = $pengiriman->groupBy('driver_id')->map(function ($group) {
+
             $driver = $group->first()->driver ?? null;
-            $pelangganUnik = $group->pluck('pesanan.pelanggan_id')->unique()->count();
-            
+
             return (object) [
-                'driver'             => $driver,
-                'nama'               => $driver ? $driver->nama_lengkap : 'Driver Tidak Diketahui',
-                'total_pelanggan'    => $pelangganUnik,
-                'total_pengiriman'   => $group->count(),
-                'waktu_terakhir'     => $group->max('waktu_selesai') 
-                                        ? $group->max('waktu_selesai')->translatedFormat('d/m/Y') 
-                                        : '-',
+                'driver_id'         => $driver->id ?? null,
+                'nama'              => $driver->nama_lengkap ?? 'Driver Tidak Diketahui',
+                'total_pelanggan'   => $group->pluck('pesanan.pelanggan_id')->unique()->count(),
+                'total_pengiriman'  => $group->count(),
+                'waktu_terakhir'    => $group->max('waktu_selesai'), // RAW DATE
             ];
         })->values();
-
-        // Statistik ringkasan (opsional, jika masih mau ditampilkan)
-        $totalPackBulanIni      = $pengiriman->sum(fn($p) => $p->pesanan->jumlah_pesanan ?? 0);
-        $totalTransaksiBulanIni = $pengiriman->count();
-        $totalDriverBulanIni    = $laporanPerDriver->count();
 
         $daftarTahun = range(2024, Carbon::now()->year);
 
         return view('admin.laporan.index', compact(
             'laporanPerDriver',
-            'totalPackBulanIni',
-            'totalTransaksiBulanIni',
-            'totalDriverBulanIni',
             'bulan',
             'tahun',
             'daftarTahun'
         ));
     }
 
-    // Route untuk download Excel
+    public function detail($driverId, Request $request)
+    {
+        $bulan = $request->bulan ?? Carbon::now()->month;
+        $tahun = $request->tahun ?? Carbon::now()->year;
+
+        $pengiriman = Pengiriman::with(['driver', 'pesanan.pelanggan'])
+            ->where('driver_id', $driverId)
+            ->whereNotNull('waktu_selesai')
+            ->whereMonth('waktu_selesai', $bulan)
+            ->whereYear('waktu_selesai', $tahun)
+            ->get();
+
+        return view('admin.laporan.detail', compact('pengiriman', 'bulan', 'tahun'));
+    }
+
     public function downloadExcel(Request $request)
     {
         $bulan = $request->bulan ?? Carbon::now()->month;

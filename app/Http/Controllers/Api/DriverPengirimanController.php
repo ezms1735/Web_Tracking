@@ -31,23 +31,81 @@ class DriverPengirimanController extends Controller
         ]);
     }
 
-public function showPesanan($id)
-{
-    $driverId = auth()->id();
+    public function showPesanan($id)
+    {
+        $driverId = auth()->id();
 
-    $pengiriman = Pengiriman::with([
-            'pesanan.pelanggan'
-        ])
-        ->where('driver_id', $driverId)
-        ->where('pesanan_id', $id)
-        ->firstOrFail();
+        $pengiriman = Pengiriman::with([
+                'pesanan.pelanggan'
+            ])
+            ->where('driver_id', $driverId)
+            ->where('pesanan_id', $id)
+            ->firstOrFail();
 
-    return response()->json([
-        'success' => true,
-        'pesanan' => $pengiriman->pesanan,
+        return response()->json([
+            'success' => true,
+            'pesanan' => $pengiriman->pesanan,
+        ]);
+    }
+
+    public function kirimBukti(Request $request, $id)
+    {
+    dd([
+        'request' => $request->all(),
+        'hasFile' => $request->hasFile('bukti_foto'),
+        'driver_login' => auth()->id(),
+        'pengiriman' => Pengiriman::where('pesanan_id', $id)->get()
     ]);
-}
+        $request->validate([
+            'bukti_foto' => 'required|image',
+            'jumlah_terkirim' => 'required|integer',
+        ]);
 
+        $pengiriman = Pengiriman::where('pesanan_id', $id)->where('driver_id', auth()->id())->first();
+
+        if (!$pengiriman) {
+            return response()->json(['message' => 'Data tidak ditemukan'], 404);
+        }
+
+        if ($request->hasFile('bukti_foto')) {
+            $path = $request->file('bukti_foto')->store('bukti', 'public');
+            $pengiriman->bukti_foto = $path;
+        }
+
+        $pengiriman->jumlah_terkirim = $request->jumlah_terkirim;
+        $pengiriman->waktu_selesai = now();
+        $pengiriman->status_pengiriman = 'selesai';
+        $pengiriman->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bukti berhasil dikirim'
+        ]);
+    }
+
+    public function riwayat(Request $request)
+    {
+        $driver = $request->user();
+
+        $pengiriman = Pengiriman::with('pesanan.pelanggan')
+            ->where('driver_id', $driver->id)
+            ->where('status_pengiriman', 'selesai')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'pesanan' => $pengiriman->map(function ($p) {
+                return [
+                    'id' => $p->pesanan->id,
+                    'jumlah_pesanan' => $p->pesanan->jumlah_pesanan,
+                    'status' => $p->status_pengiriman,
+                    'bukti_foto' => $p->bukti_foto,
+                    'jumlah_terkirim' => $p->jumlah_terkirim,
+                ];
+            }),
+        ]);
+    }
 
     // Update lokasi driver
     public function updateLokasi(Request $request)

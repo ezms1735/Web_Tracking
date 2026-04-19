@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\LaporanController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PemantauanController;
 use App\Http\Controllers\Api\DriverPengirimanController;
+use App\Http\Controllers\Api\DriverProfilController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,20 +65,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Pesanan
         Route::resource('pesanan', PesananController::class);
+        Route::post('/pesanan/{id}/assign-driver', [PesananController::class, 'assignDriver'])->name('pesanan.assignDriver');
 
         // Pengiriman
         Route::resource('pengiriman', PengirimanController::class);
 
         // Laporan
-        Route::get('/laporan', [LaporanController::class, 'index'])
-            ->name('laporan.index');
-
-        Route::get('/laporan/download', [LaporanController::class, 'downloadExcel'])
-            ->name('laporan.download');
+        Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+        Route::get('/laporan/{driver}', [LaporanController::class, 'detail'])->name('laporan.detail');
+        Route::get('/laporan/download', [LaporanController::class, 'downloadExcel'])->name('laporan.download');
     });
 
 
     Route::middleware('auth:sanctum')->group(function () {
     Route::get('/driver/pengiriman', [DriverPengirimanController::class, 'index']);
+    
 });
 });
+                                                                                                                                                                                                                                                                                                                                                                    

@@ -94,4 +94,19 @@ class PesananController extends Controller
         $pesanan->delete();
         return back()->with('success', 'Pesanan berhasil dihapus');
     }
+
+public function assignDriver(Request $request, $id)
+{
+    $request->validate([
+        'driver_id' => 'required|exists:pengguna,id'
+    ]);
+
+    $pesanan = Pesanan::findOrFail($id);
+
+    $pesanan->driver_id = $request->driver_id;
+    $pesanan->status_pesanan = 'proses';
+    $pesanan->save();
+
+    return back()->with('success', 'Driver berhasil ditugaskan');
+}
 }

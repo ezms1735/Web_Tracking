@@ -22,7 +22,8 @@ class Pengguna extends Authenticatable
         'peran',
         'status',
         'latitude',
-        'longitude'
+        'longitude',
+        // 'expo_token'
     ];
 
     protected $hidden = [
@@ -57,6 +58,9 @@ class Pengguna extends Authenticatable
         return $query->where('peran', 'pelanggan');
     }
 
-    
+    public function pengiriman()
+{
+    return $this->hasMany(Pengiriman::class, 'driver_id');
+}
 }
 
