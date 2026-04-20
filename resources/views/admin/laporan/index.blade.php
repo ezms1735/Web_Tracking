@@ -45,10 +45,10 @@
             <table class="w-full text-sm text-left">
                 <thead class="bg-gray-50 text-gray-700 uppercase text-xs tracking-wider">
                     <tr>
-                        <th class="px-6 py-4 font-semibold">Driver</th>
-                        <th class="px-6 py-4 text-center font-semibold">Total Pelanggan</th>
+                        <th class="px-6 py-4 font-semibold">Tanggal</th>
+                        <th class="px-6 py-4 text-center font-semibold">Driver</th>
                         <th class="px-6 py-4 text-center font-semibold">Total Pengiriman</th>
-                        <th class="px-6 py-4 text-center font-semibold">Waktu Terakhir</th>
+                        <th class="px-6 py-4 text-center font-semibold"> Total Pelanggan</th>
                         <th class="px-6 py-4 text-center font-semibold">Aksi</th>
                     </tr>
                 </thead>
