@@ -14,7 +14,6 @@ class PesananController extends Controller
     {
         $query = Pesanan::with('pelanggan')->latest();
 
-    // Filter tanggal (hari), bulan, tahun – semuanya opsional
     if ($request->filled('tanggal') && is_numeric($request->tanggal)) {
         $query->whereDay('created_at', $request->tanggal);
     }
@@ -29,7 +28,6 @@ class PesananController extends Controller
 
     $pesanan = $query->paginate(10);
 
-    // Daftar tahun untuk dropdown (pastikan import DB)
     $daftarTahun = Pesanan::select(\Illuminate\Support\Facades\DB::raw('YEAR(created_at) as tahun'))
         ->distinct()
         ->orderBy('tahun', 'desc')

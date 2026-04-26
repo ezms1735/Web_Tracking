@@ -22,18 +22,23 @@ class LaporanController extends Controller
             ->whereYear('waktu_selesai', $tahun)
             ->get();
 
-        $laporanPerDriver = $pengiriman->groupBy('driver_id')->map(function ($group) {
+        $laporanPerDriver = $pengiriman->groupBy(function ($item) {
+            return $item->driver_id . '-' . Carbon::parse($item->waktu_selesai)->format('Y-m-d');
+            })->map(function ($group) {
 
-            $driver = $group->first()->driver ?? null;
+                $driver = $group->first()->driver ?? null;
 
-            return (object) [
-                'driver_id'         => $driver->id ?? null,
-                'nama'              => $driver->nama_lengkap ?? 'Driver Tidak Diketahui',
-                'total_pelanggan'   => $group->pluck('pesanan.pelanggan_id')->unique()->count(),
-                'total_pengiriman'  => $group->count(),
-                'waktu_terakhir'    => $group->max('waktu_selesai'), 
-            ];
-        })->values();
+                return (object) [
+                    'driver_id'         => $driver->id ?? null,
+                    'nama'              => $driver->nama_lengkap ?? 'Driver Tidak Diketahui',
+                    'tanggal'           => Carbon::parse($group->first()->waktu_selesai)->format('Y-m-d'),
+                    'total_pelanggan'   => $group->pluck('pesanan.pelanggan_id')->unique()->count(),
+                    'total_pengiriman'  => $group->count(),
+                    'waktu_terakhir'    => $group->max('waktu_selesai'),
+                ];
+            })
+            ->sortByDesc('tanggal')
+            ->values();
 
         $daftarTahun = range(2024, Carbon::now()->year);
 
@@ -47,17 +52,14 @@ class LaporanController extends Controller
 
     public function detail($driverId, Request $request)
     {
-        $bulan = $request->bulan ?? Carbon::now()->month;
-        $tahun = $request->tahun ?? Carbon::now()->year;
+        $tanggal = $request->tanggal;
 
         $pengiriman = Pengiriman::with(['driver', 'pesanan.pelanggan'])
             ->where('driver_id', $driverId)
-            ->whereNotNull('waktu_selesai')
-            ->whereMonth('waktu_selesai', $bulan)
-            ->whereYear('waktu_selesai', $tahun)
+            ->whereDate('waktu_selesai', $tanggal) 
             ->get();
 
-        return view('admin.laporan.detail', compact('pengiriman', 'bulan', 'tahun'));
+        return view('admin.laporan.detail', compact('pengiriman', 'tanggal'));
     }
 
     public function downloadExcel(Request $request)

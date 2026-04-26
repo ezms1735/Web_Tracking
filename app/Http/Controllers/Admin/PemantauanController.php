@@ -13,14 +13,14 @@ class PemantauanController extends Controller
     {
         $today = Carbon::today();
 
-        // Ambil semua pengiriman yang punya driver (untuk markers)
+        // Pengiriman punya driver
         $pengirimanAktif = Pengiriman::with(['driver', 'pesanan.pelanggan'])
             ->whereNotNull('driver_id')
             ->latest()
             ->get()
             ->groupBy('driver_id');
 
-        // Untuk tampilan list: hanya pengiriman hari ini
+        // Pengiriman hari ini
         $pengirimanHariIni = Pengiriman::with(['driver', 'pesanan.pelanggan'])
             ->whereNotNull('driver_id')
             ->whereDate('waktu_mulai', $today)

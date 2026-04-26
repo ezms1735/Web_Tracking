@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
-    // tampilkan halaman login
     public function index()
     {
         return view('admin.login');

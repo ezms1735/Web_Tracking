@@ -4,12 +4,10 @@
 
 @section('content')
 
-{{-- UCAPAN --}}
 <div class="mb-6">
     <h1 class="text-2xl font-bold">Selamat Datang, Admin 👋</h1>
 </div>
 
-{{-- STATISTIK --}}
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
     <div class="bg-white p-5 rounded shadow">

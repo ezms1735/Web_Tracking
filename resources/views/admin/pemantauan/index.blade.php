@@ -187,7 +187,6 @@
             }
         });
 
-        // Hapus marker yang sudah tidak ada di Firebase (opsional)
         Object.keys(driverMarkers).forEach(id => {
             if (!drivers[id]) {
                 map.removeLayer(driverMarkers[id]);

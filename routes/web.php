@@ -14,7 +14,7 @@ use App\Http\Controllers\Api\DriverProfilController;
 
 /*
 |--------------------------------------------------------------------------
-| DEFAULT LOGIN (WAJIB UNTUK auth MIDDLEWARE)
+| DEFAULT LOGIN 
 |--------------------------------------------------------------------------
 */
 Route::get('/login', fn () => redirect()->route('admin.login'))
@@ -34,7 +34,7 @@ Route::get('/', fn () => redirect()->route('admin.login'));
 */
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    // === AUTH ADMIN (TANPA middleware auth) ===
+    //  AUTH ADMIN 
     Route::get('/login', [LoginController::class, 'index'])
         ->name('login');
 
@@ -44,7 +44,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])
         ->name('logout');
 
-    // === WAJIB LOGIN + ROLE ADMIN ===
+    // ADMIN
     Route::middleware(['auth', 'admin'])->group(function () {
 
         Route::get('/dashboard', [DashboardController::class, 'index'])

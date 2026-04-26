@@ -102,14 +102,13 @@ class DriverPengirimanController extends Controller
                     'jumlah_pesanan' => $p->pesanan->jumlah_pesanan,
                     'jumlah_terkirim' => $p->jumlah_terkirim,
                     'bukti_foto' => $p->bukti_foto,
-                    'waktu_selesai' => $p->waktu_selesai, // ✅ tambah ini untuk grouping
-                    'pelanggan' => $p->pesanan->pelanggan, // ✅ tambah ini untuk nama, telp, alamat
+                    'waktu_selesai' => $p->waktu_selesai,
+                    'pelanggan' => $p->pesanan->pelanggan, 
                 ];
             }),
         ]);
     }
 
-    // Update lokasi driver
     public function updateLokasi(Request $request)
     {
         $request->validate([
@@ -119,13 +118,11 @@ class DriverPengirimanController extends Controller
 
         $driver = $request->user();
         
-        // Update di database lokal
         $driver->update([
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
         ]);
 
-        // Update di Firebase Realtime Database
         try {
             $database = app('firebase.database');
             $database

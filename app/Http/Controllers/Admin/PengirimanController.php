@@ -18,7 +18,6 @@ class PengirimanController extends Controller
             'driver'
         ])->latest();
 
-        // Filter hari, bulan, tahun (opsional, jarang digunakan)
         if ($request->filled('tanggal') && is_numeric($request->tanggal)) {
             $query->whereDay('created_at', $request->tanggal);
         }
@@ -75,7 +74,6 @@ class PengirimanController extends Controller
             'jumlah_terkirim'   => $request->jumlah_terkirim ?? 0,
         ];
 
-        // Upload bukti foto jika ada
         if ($request->hasFile('bukti_foto')) {
             $data['bukti_foto'] = $request->file('bukti_foto')
                 ->store('bukti_pengiriman', 'public');
@@ -83,7 +81,6 @@ class PengirimanController extends Controller
 
         Pengiriman::create($data);
 
-        // Ubah status pesanan menjadi proses
         Pesanan::where('id', $request->pesanan_id)
             ->update(['status_pesanan' => 'proses']);
 
@@ -93,7 +90,7 @@ class PengirimanController extends Controller
 
     public function show(Pengiriman $pengiriman)
     {
-        $pengiriman->load(['pesanan.pelanggan', 'driver']); // pastikan relasi ter-load
+        $pengiriman->load(['pesanan.pelanggan', 'driver']); 
         return view('admin.pengiriman.show', compact('pengiriman'));
     }
 
@@ -113,17 +110,14 @@ class PengirimanController extends Controller
 
         $data = $request->only('status_pengiriman', 'jumlah_terkirim');
 
-        // Upload bukti foto baru jika ada (opsional overwrite)
         if ($request->hasFile('bukti_foto')) {
             $data['bukti_foto'] = $request->file('bukti_foto')
                 ->store('bukti_pengiriman', 'public');
         }
 
-        // Jika status diubah menjadi selesai
         if ($request->status_pengiriman === 'selesai') {
             $data['waktu_selesai'] = now();
 
-            // Sinkronkan status pesanan ke selesai
             $pengiriman->pesanan->update([
                 'status_pesanan' => 'selesai'
             ]);

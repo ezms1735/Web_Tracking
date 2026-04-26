@@ -28,29 +28,30 @@ class PelangganController extends Controller
             ], 201);
         }
 
-public function getPesananSaya(Request $request)
-{
-    $pelanggan = $request->user();
+    public function getPesananSaya(Request $request)
+    {
+        $pelanggan = $request->user();
 
-    $pesanan = Pesanan::with(['pengiriman.driver'])
-        ->where('pelanggan_id', $pelanggan->id)
-        ->where('status_pesanan', '!=', 'selesai') 
-        ->latest()
-        ->get()
-        ->map(function ($p) {
-            return [
-                'id' => $p->id,
-                'jumlah_pesanan' => $p->jumlah_pesanan,
-                'status_pesanan' => $p->status_pesanan,
-                'nama_driver' => $p->pengiriman?->driver?->nama_lengkap,
-            ];
-        });
+        $pesanan = Pesanan::with(['pengiriman.driver'])
+            ->where('pelanggan_id', $pelanggan->id)
+            ->where('status_pesanan', '!=', 'selesai') 
+            ->latest()
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id'             => $p->id,
+                    'jumlah_pesanan' => $p->jumlah_pesanan,
+                    'status_pesanan' => $p->status_pesanan,
+                    'nama_driver'    => $p->pengiriman?->driver?->nama_lengkap,
+                    'driver_id'      => $p->pengiriman?->driver?->id, // <-- TAMBAHAN
+                ];
+            });
 
-    return response()->json([
-        'success' => true,
-        'data' => $pesanan,
-    ]);
-}
+        return response()->json([
+            'success' => true,
+            'data' => $pesanan,
+        ]);
+    }
 
     public function riwayat(Request $request)
     {

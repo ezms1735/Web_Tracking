@@ -10,7 +10,7 @@ class DriverProfilController extends Controller
 {
     public function show()
     {
-        $driver = Auth::user(); // asumsi model User atau Driver
+        $driver = Auth::user(); 
 
         return response()->json([
             'success' => true,
