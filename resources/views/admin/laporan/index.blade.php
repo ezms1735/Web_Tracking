@@ -10,7 +10,8 @@
         
         <form method="GET" class="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-gray-200 shadow-sm">
             <select name="bulan" 
-                    class="bg-transparent border-none text-gray-700 text-sm font-medium focus:ring-0 cursor-pointer px-3">
+                class="bg-transparent border-none text-gray-700 text-sm font-medium focus:ring-0 cursor-pointer px-3">
+                <option value="" {{ !$bulan ? 'selected' : '' }}>Semua</option>
                 @for ($i = 1; $i <= 12; $i++)
                     <option value="{{ $i }}" {{ $bulan == $i ? 'selected' : '' }}>
                         {{ Carbon::create(null, $i)->translatedFormat('F') }}
@@ -21,16 +22,28 @@
             <div class="h-6 w-px bg-gray-200"></div>
 
             <select name="tahun" 
-                    class="bg-transparent border-none text-gray-700 text-sm font-medium focus:ring-0 cursor-pointer px-3">
+                class="bg-transparent border-none text-gray-700 text-sm font-medium focus:ring-0 cursor-pointer px-3">
+                <option value="" {{ !$tahun ? 'selected' : '' }}>Semua</option>
                 @foreach ($daftarTahun as $th)
                     <option value="{{ $th }}" {{ $tahun == $th ? 'selected' : '' }}>{{ $th }}</option>
                 @endforeach
             </select>
 
+            {{-- Tombol Tampilkan --}}
             <button type="submit" 
                     class="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg font-medium transition text-sm">
                 Tampilkan
             </button>
+
+            {{-- Tombol Unduh Excel semua data sesuai filter --}}
+            <a href="{{ route('admin.laporan.download') }}?bulan={{ $bulan }}&tahun={{ $tahun }}"
+               class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Unduh Excel
+            </a>
         </form>
     </div>
 
@@ -48,36 +61,28 @@
                         <th class="px-6 py-4 font-semibold">Tanggal</th>
                         <th class="px-6 py-4 text-center font-semibold">Driver</th>
                         <th class="px-6 py-4 text-center font-semibold">Total Pengiriman</th>
-                        <th class="px-6 py-4 text-center font-semibold"> Total Pelanggan</th>
+                        <th class="px-6 py-4 text-center font-semibold">Total Pelanggan</th>
                         <th class="px-6 py-4 text-center font-semibold">Aksi</th>
                     </tr>
                 </thead>
-
                 <tbody class="divide-y divide-gray-200 text-gray-700">
                     @forelse($laporanPerDriver ?? [] as $item)
                     <tr class="hover:bg-gray-50 transition">
-                        
-                         <td class="px-6 py-4 text-gray-500 italic">
+                        <td class="px-6 py-4 text-gray-500 italic">
                             {{ $item->waktu_terakhir 
                                 ? Carbon::parse($item->waktu_terakhir)->translatedFormat('d M Y') 
                                 : '-' }}
                         </td>
-
-                        <td class="px-6 py-4 font-medium text-center">
-                            {{ $item->nama }}
-                        </td>
-
+                        <td class="px-6 py-4 font-medium text-center">{{ $item->nama }}</td>
                         <td class="px-6 py-4 text-center">
                             <span class="font-semibold">{{ $item->total_pelanggan }}</span>
                         </td>
-
                         <td class="px-6 py-4 text-center">
                             <span class="font-semibold">{{ $item->total_pengiriman }}</span>
                         </td>
-
                         <td class="px-6 py-4 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                
+
                                 {{-- Tombol Detail --}}
                                 <a href="{{ route('admin.laporan.detail', ['driver' => $item->driver_id, 'tanggal' => $item->tanggal]) }}" 
                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 transition">
@@ -88,8 +93,8 @@
                                     Detail
                                 </a>
 
-                                {{-- Tombol Unduh --}}
-                                <a href="{{ route('admin.laporan.download') }}?bulan={{ $bulan }}&tahun={{ $tahun }}" 
+                                {{-- Tombol Unduh per baris --}}
+                                <a href="{{ route('admin.laporan.download', ['driver_id' => $item->driver_id, 'tanggal' => $item->tanggal]) }}" 
                                    class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-purple-600 rounded hover:bg-purple-700 transition">
                                     <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -100,7 +105,6 @@
                             </div>
                         </td>
                     </tr>
-
                     @empty
                     <tr>
                         <td colspan="5" class="py-16 text-center text-gray-500 text-base">
@@ -109,7 +113,6 @@
                     </tr>
                     @endforelse
                 </tbody>
-
             </table>
         </div>
     </div>

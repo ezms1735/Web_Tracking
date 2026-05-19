@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\DriverProfilController;
 use App\Http\Controllers\Api\DriverController;
 use App\Http\Controllers\Api\PelangganController;
 use App\Http\Controllers\Api\PelangganProfilController;
+use App\Http\Controllers\Api\NotifikasiController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -39,18 +40,26 @@ Route::middleware('auth:sanctum')->group(function () {
   
     });
 
-   Route::prefix('pelanggan')->group(function () {
+    Route::prefix('pelanggan')->group(function () {
         Route::post('/pesanan', [PelangganController::class, 'storePesanan']);  
         Route::get('/pesanan', [PelangganController::class, 'getPesananSaya']);
         Route::get('/profil', [PelangganProfilController::class, 'show']);
         Route::put('/profil', [PelangganProfilController::class, 'update']);
-        Route::get('/riwayat', [PelangganController::class, 'riwayat']);    });
-        
+        Route::get('/riwayat', [PelangganController::class, 'riwayat']);
+    });        
 
     Route::prefix('admin')->group(function () {
         Route::post('/assign-driver', [AdminController::class, 'assignDriver']);
         
         Route::get('/pesanan', [AdminController::class, 'pesananAll']);
         Route::get('/pesanan/{id}', [AdminController::class, 'showPesanan']);
+    });
+
+    Route::prefix('notifikasi')->group(function () {
+        Route::post('/token', [NotifikasiController::class, 'simpanToken']);
+        Route::get('/', [NotifikasiController::class, 'index']);
+        Route::patch('/{id}/baca', [NotifikasiController::class, 'tandaiDibaca']);
+        Route::patch('/baca-semua', [NotifikasiController::class, 'tandaiSemuaDibaca']);
+        Route::delete('/{id}', [NotifikasiController::class, 'destroy']);
     });
 });

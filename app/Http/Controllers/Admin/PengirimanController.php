@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Pengiriman;
 use App\Models\Pesanan;
 use App\Models\Pengguna;
+use App\Services\NotifikasiService;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -79,10 +81,32 @@ class PengirimanController extends Controller
                 ->store('bukti_pengiriman', 'public');
         }
 
-        Pengiriman::create($data);
+        $pengiriman = Pengiriman::create($data);
 
         Pesanan::where('id', $request->pesanan_id)
             ->update(['status_pesanan' => 'proses']);
+
+        $pesanan = Pesanan::find($request->pesanan_id);
+        
+       $jumlahPengiriman = Pengiriman::where('driver_id', $request->driver_id)
+            ->where('status_pengiriman', 'proses')
+            ->count();
+
+        NotifikasiService::keDriver(
+            $request->driver_id,
+            'Penugasan Pengiriman Baru',
+            "Anda memiliki {$jumlahPengiriman} pengiriman yang harus dikirimkan.",
+            'penugasan_driver',
+            $pengiriman->id
+        );
+
+        NotifikasiService::kePelanggan(
+            $pesanan->pelanggan_id,
+            'Pesanan Sedang Diproses',
+            "Pesanan Anda sedang dalam proses pengiriman oleh driver.",
+            'pesanan_proses',
+            $pesanan->id
+        );
 
         return redirect()->route('admin.pengiriman.index')
             ->with('success', 'Pengiriman berhasil dibuat');

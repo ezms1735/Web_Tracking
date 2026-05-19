@@ -53,12 +53,6 @@
                                     <span class="block text-xs text-green-600 font-medium">{{ $sudahSelesai }} sudah selesai</span>
                                 </div>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-gray-600">Aktivitas Terakhir</span>
-                                <span class="text-xs text-gray-700">
-                                    {{ $grupPengiriman->first()->waktu_mulai->format('H:i') }} - sekarang
-                                </span>
-                            </div>
                         </div>
 
                         <details class="border-t border-gray-200 pt-3">

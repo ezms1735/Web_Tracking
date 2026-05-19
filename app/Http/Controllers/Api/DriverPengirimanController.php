@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Pesanan;
 use App\Models\Pengiriman;
+use App\Models\Pengguna;
+use App\Services\NotifikasiService;
 
 class DriverPengirimanController extends Controller
 {
@@ -76,6 +78,14 @@ class DriverPengirimanController extends Controller
         if ($pesanan) {
             $pesanan->status_pesanan = 'selesai';
             $pesanan->save();
+
+            NotifikasiService::kePelanggan(
+                $pesanan->pelanggan_id,
+                'Pesanan Telah Terkirim',
+                "Pesanan Anda telah berhasil dikirim. Jumlah terkirim: {$request->jumlah_terkirim}.",
+                'pesanan_selesai',
+                $pesanan->id
+            );
         }
 
         return response()->json([

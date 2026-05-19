@@ -23,7 +23,7 @@ class Pengguna extends Authenticatable
         'status',
         'latitude',
         'longitude',
-        // 'expo_token'
+        'expo_token',
     ];
 
     protected $hidden = [
@@ -59,8 +59,13 @@ class Pengguna extends Authenticatable
     }
 
     public function pengiriman()
-{
-    return $this->hasMany(Pengiriman::class, 'driver_id');
-}
+    {
+        return $this->hasMany(Pengiriman::class, 'driver_id');
+    }
+
+    public function notifikasi()
+    {
+        return $this->hasMany(Notifikasi::class, 'pengguna_id');
+    }
 }
 

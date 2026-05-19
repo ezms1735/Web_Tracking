@@ -6,21 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Models\Pengiriman;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\LaporanBulananExport;
+use Rap2hpoutre\FastExcel\FastExcel;
 
 class LaporanController extends Controller
 {
     public function index(Request $request)
     {
-        $bulan = $request->input('bulan', Carbon::now()->month);
-        $tahun = $request->input('tahun', Carbon::now()->year);
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
 
-        $pengiriman = Pengiriman::with(['driver', 'pesanan.pelanggan'])
-            ->whereNotNull('waktu_selesai')
-            ->whereMonth('waktu_selesai', $bulan)
-            ->whereYear('waktu_selesai', $tahun)
-            ->get();
+        $query = Pengiriman::with(['driver', 'pesanan.pelanggan'])
+            ->whereNotNull('waktu_selesai');
+
+        if ($bulan) {
+            $query->whereMonth('waktu_selesai', $bulan);
+        }
+
+        if ($tahun) {
+            $query->whereYear('waktu_selesai', $tahun);
+        }
+
+        $pengiriman = $query->get();
 
         $laporanPerDriver = $pengiriman->groupBy(function ($item) {
             return $item->driver_id . '-' . Carbon::parse($item->waktu_selesai)->format('Y-m-d');
@@ -64,11 +70,58 @@ class LaporanController extends Controller
 
     public function downloadExcel(Request $request)
     {
-        $bulan = $request->bulan ?? Carbon::now()->month;
-        $tahun = $request->tahun ?? Carbon::now()->year;
+        $driverId = $request->driver_id;
+        $tanggal  = $request->tanggal;
+        $bulan    = $request->bulan;
+        $tahun    = $request->tahun;
 
-        $namaFile = 'Laporan_Pengiriman_' . Carbon::create($tahun, $bulan)->format('F_Y') . '.xlsx';
+        $query = Pengiriman::with(['driver', 'pesanan.pelanggan'])
+            ->whereNotNull('waktu_selesai');
 
-        return Excel::download(new LaporanBulananExport($bulan, $tahun), $namaFile);
+        // Download per baris (dari tombol Unduh di tabel)
+        if ($driverId && $tanggal) {
+            $query->where('driver_id', $driverId)
+                ->whereDate('waktu_selesai', $tanggal);
+        } else {
+            // Download semua (dari tombol di form filter)
+            if ($bulan) $query->whereMonth('waktu_selesai', $bulan);
+            if ($tahun) $query->whereYear('waktu_selesai', $tahun);
+        }
+
+        $data = $query->get()->map(function ($item) {
+            return [
+                'Tanggal'               => $item->waktu_selesai
+                                            ? Carbon::parse($item->waktu_selesai)->format('d/m/Y')
+                                            : '-',
+                'Nama Driver'           => $item->driver->nama_lengkap ?? '-',
+                'No. Telepon Driver'    => $item->driver->nomor_telepon ?? '-',
+                'Nama Pelanggan'        => $item->pesanan?->pelanggan?->nama_lengkap ?? '-',
+                'No. Telepon Pelanggan' => $item->pesanan?->pelanggan?->nomor_telepon ?? '-',
+                'Alamat Pelanggan'      => $item->pesanan?->pelanggan?->alamat ?? '-',
+                'Jumlah Pesanan'        => $item->pesanan?->jumlah_pesanan ?? '-',
+                'Jumlah Terkirim'       => $item->jumlah_terkirim ?? '-',
+                'Bukti Foto (URL)'      => $item->bukti_foto
+                                            ? asset('storage/' . $item->bukti_foto)
+                                            : '-',
+                'Waktu Mulai'           => $item->waktu_mulai
+                                            ? Carbon::parse($item->waktu_mulai)->format('d/m/Y H:i')
+                                            : '-',
+                'Waktu Selesai'         => $item->waktu_selesai
+                                            ? Carbon::parse($item->waktu_selesai)->format('d/m/Y H:i')
+                                            : '-',
+            ];
+        });
+
+        // Buat nama file dinamis
+        if ($driverId && $tanggal) {
+            $namaDriver = $data->first()['Nama Driver'] ?? 'Driver';
+            $namaFile = 'Laporan_' . str_replace(' ', '_', $namaDriver) . '_' . $tanggal . '.xlsx';
+        } elseif ($bulan && $tahun) {
+            $namaFile = 'Laporan_' . Carbon::create($tahun, $bulan)->format('F_Y') . '.xlsx';
+        } else {
+            $namaFile = 'Laporan_Semua_Pengiriman.xlsx';
+        }
+
+        return (new FastExcel($data))->download($namaFile);
     }
 }
