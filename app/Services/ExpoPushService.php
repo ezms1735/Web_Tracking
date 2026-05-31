@@ -9,8 +9,7 @@ class ExpoPushService
 {
     public static function kirim(string $expoToken, string $judul, string $pesan, array $data = []): void
     {
-        // Validasi format token
-        if (!str_starts_with($expoToken, 'ExponentPushToken[')) {
+        if (!str_starts_with($expoToken, 'ExponentPushToken[') && !str_starts_with($expoToken, 'ExpoPushToken[')) {
             Log::warning('Expo push token tidak valid: ' . $expoToken);
             return;
         }
@@ -26,7 +25,7 @@ class ExpoPushService
                 'data'  => $data,
                 'sound' => 'default',
                 'channelId' => 'default',
-                'priyority' => 'high',         
+                'priority' => 'high',         
             ]);
 
             Log::info('Expo push response: ' . $response->body());

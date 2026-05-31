@@ -7,6 +7,7 @@ use App\Models\Pesanan;
 use App\Models\Pengguna;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\Notifikasi; 
 
 class PesananController extends Controller
 {
@@ -38,7 +39,9 @@ class PesananController extends Controller
         $daftarTahun = [now()->year];
     }
 
-    return view('admin.pesanan.index', compact('pesanan', 'daftarTahun'));
+    $pelanggan = \App\Models\Pengguna::where('peran', 'pelanggan')->get();
+
+    return view('admin.pesanan.index', compact('pesanan', 'daftarTahun', 'pelanggan'));
 }
 
     public function create()
@@ -66,12 +69,12 @@ class PesananController extends Controller
 
     public function show(Pesanan $pesanan)
     {
-        return view('admin.pesanan.show', compact('pesanan'));
+        return view('admin.pesanan.index');
     }
 
     public function edit(Pesanan $pesanan)
     {
-        return view('admin.pesanan.edit', compact('pesanan'));
+        return view('admin.pesanan.index');
     }
 
     public function update(Request $request, Pesanan $pesanan)
@@ -93,18 +96,18 @@ class PesananController extends Controller
         return back()->with('success', 'Pesanan berhasil dihapus');
     }
 
-public function assignDriver(Request $request, $id)
-{
-    $request->validate([
-        'driver_id' => 'required|exists:pengguna,id'
-    ]);
+    public function assignDriver(Request $request, $id)
+    {
+        $request->validate([
+            'driver_id' => 'required|exists:pengguna,id'
+        ]);
 
-    $pesanan = Pesanan::findOrFail($id);
+        $pesanan = Pesanan::findOrFail($id);
 
-    $pesanan->driver_id = $request->driver_id;
-    $pesanan->status_pesanan = 'proses';
-    $pesanan->save();
+        $pesanan->driver_id = $request->driver_id;
+        $pesanan->status_pesanan = 'proses';
+        $pesanan->save();
 
-    return back()->with('success', 'Driver berhasil ditugaskan');
-}
+        return back()->with('success', 'Driver berhasil ditugaskan');
+    }
 }

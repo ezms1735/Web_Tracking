@@ -15,16 +15,9 @@ class Pesanan extends Model
         'status_pesanan',
     ];
 
-    /* ================= RELATION ================= */
-
     public function pelanggan()
     {
         return $this->belongsTo(Pengguna::class, 'pelanggan_id');
-    }
-
-    public function driver()
-    {
-        return $this->belongsTo(Pengguna::class, 'driver_id');
     }
 
     public function pengiriman()

@@ -23,8 +23,6 @@ class Pengiriman extends Model
         'waktu_selesai' => 'datetime',
     ];
 
-    /* ================= RELATION ================= */
-
     public function pesanan()
     {
         return $this->belongsTo(Pesanan::class);

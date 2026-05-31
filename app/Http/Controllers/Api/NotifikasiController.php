@@ -10,18 +10,20 @@ class NotifikasiController extends Controller
 {
     public function index(Request $request)
     {
-    Notifikasi::where('pengguna_id', $request->user()->id)
-            ->where('dibaca', false)
-            ->update(['dibaca' => true]);
+        $penggunaId = $request->user()->id;
 
-        $notifikasi = Notifikasi::where('pengguna_id', $request->user()->id)
+        $belumDibaca = Notifikasi::where('pengguna_id', $penggunaId)
+            ->where('dibaca', false)
+            ->count();
+
+        $notifikasi = Notifikasi::where('pengguna_id', $penggunaId)
             ->latest()
             ->get();
 
         return response()->json([
-            'success' => true,
-            'notifikasi' => $notifikasi,
-            'belum_dibaca' => 0,
+            'success'      => true,
+            'notifikasi'   => $notifikasi,
+            'belum_dibaca' => $belumDibaca,
         ]);
     }
 
@@ -64,6 +66,7 @@ class NotifikasiController extends Controller
             'message' => 'Notifikasi dihapus',
         ]);
     }
+
     public function simpanToken(Request $request)
     {
         $request->validate([

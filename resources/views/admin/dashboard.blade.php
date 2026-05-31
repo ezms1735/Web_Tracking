@@ -32,15 +32,6 @@
 
 </div>
 
-<!-- {{-- MAPS --}}
-<div class="bg-white rounded shadow mb-8">
-    <div class="p-4 border-b font-semibold">
-        Peta Pemantauan Pengiriman
-    </div>
-
-    <div id="map" class="h-96 w-full"></div>
-</div> -->
-
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
     {{-- PESANAN BARU --}}

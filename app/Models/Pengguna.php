@@ -21,8 +21,6 @@ class Pengguna extends Authenticatable
         'password',
         'peran',
         'status',
-        'latitude',
-        'longitude',
         'expo_token',
     ];
 
@@ -30,23 +28,10 @@ class Pengguna extends Authenticatable
         'password'
     ];
 
-    /* =====================
-     | RELASI
-     ===================== */
-
      public function pesananSebagaiPelanggan()
     {
         return $this->hasMany(Pesanan::class, 'pelanggan_id');
     }
-
-    public function pesananSebagaiDriver()
-    {
-        return $this->hasMany(Pesanan::class, 'driver_id');
-    }
-
-    /* =====================
-     | SCOPE
-     ===================== */
 
     public function scopeDriver($query)
     {

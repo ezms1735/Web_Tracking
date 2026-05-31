@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Rap2hpoutre\FastExcel\FastExcel;
 
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Common\Entity\Style\Border;
+use OpenSpout\Common\Entity\Style\BorderPart;
+use OpenSpout\Common\Entity\Style\CellAlignment;
+
 class LaporanController extends Controller
 {
     public function index(Request $request)
@@ -78,12 +83,10 @@ class LaporanController extends Controller
         $query = Pengiriman::with(['driver', 'pesanan.pelanggan'])
             ->whereNotNull('waktu_selesai');
 
-        // Download per baris (dari tombol Unduh di tabel)
         if ($driverId && $tanggal) {
             $query->where('driver_id', $driverId)
                 ->whereDate('waktu_selesai', $tanggal);
         } else {
-            // Download semua (dari tombol di form filter)
             if ($bulan) $query->whereMonth('waktu_selesai', $bulan);
             if ($tahun) $query->whereYear('waktu_selesai', $tahun);
         }
@@ -112,7 +115,6 @@ class LaporanController extends Controller
             ];
         });
 
-        // Buat nama file dinamis
         if ($driverId && $tanggal) {
             $namaDriver = $data->first()['Nama Driver'] ?? 'Driver';
             $namaFile = 'Laporan_' . str_replace(' ', '_', $namaDriver) . '_' . $tanggal . '.xlsx';
@@ -122,6 +124,30 @@ class LaporanController extends Controller
             $namaFile = 'Laporan_Semua_Pengiriman.xlsx';
         }
 
-        return (new FastExcel($data))->download($namaFile);
+     //Konfigurasi Excel
+        $border = new Border(
+            new BorderPart('left', '000000', 'thin', 'solid'),
+            new BorderPart('right', '000000', 'thin', 'solid'),
+            new BorderPart('top', '000000', 'thin', 'solid'),
+            new BorderPart('bottom', '000000', 'thin', 'solid')
+        );
+        
+        $headerStyle = (new Style())
+            ->setFontBold()
+            ->setFontSize(12)
+            ->setBorder($border)
+            ->setBackgroundColor('92D050') 
+            ->setCellAlignment(CellAlignment::CENTER); 
+
+
+        $rowsStyle = (new Style())
+            ->setFontSize(11)
+            ->setShouldWrapText(false) 
+            ->setBorder($border);
+
+        return (new FastExcel($data))
+            ->headerStyle($headerStyle)
+            ->rowsStyle($rowsStyle)
+            ->download($namaFile);
     }
 }

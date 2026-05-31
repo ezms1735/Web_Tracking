@@ -30,7 +30,6 @@
             overflow: hidden;
         }
 
-        /* KIRI */
         .login-left {
             width: 50%;
             background: #ffffff;
@@ -47,7 +46,7 @@
         }
 
         .login-left h2 {
-            color: #c62828; /* merah bintang */
+            color: #c62828; 
             margin-bottom: 5px;
         }
 
@@ -56,7 +55,6 @@
             font-size: 14px;
         }
 
-        /* KANAN */
         .login-right {
             width: 50%;
             background: #0288d1;
@@ -93,7 +91,7 @@
         .login-box button {
             width: 100%;
             padding: 12px;
-            background: #00456bff; /* biru spiral */
+            background: #00456bff; 
             border: none;
             color: white;
             font-weight: bold;
@@ -120,12 +118,10 @@
 
 <div class="login-container">
 
-    <!-- KIRI -->
     <div class="login-left">
         <img src="{{ asset('img/logo.png') }}" alt="Logo Moya Kristal">
     </div>
 
-    <!-- KANAN -->
     <div class="login-right">
         <div class="login-box">
 

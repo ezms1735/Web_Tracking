@@ -6,10 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Pengiriman;
 use App\Models\Pesanan;
 use App\Models\Pengguna;
-use App\Services\NotifikasiService;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Services\NotifikasiService;
 
 class PengirimanController extends Controller
 {
@@ -20,20 +19,24 @@ class PengirimanController extends Controller
             'driver'
         ])->latest();
 
+        // Filter Tanggal
         if ($request->filled('tanggal') && is_numeric($request->tanggal)) {
             $query->whereDay('created_at', $request->tanggal);
         }
 
+        // Filter Bulan
         if ($request->filled('bulan') && is_numeric($request->bulan)) {
             $query->whereMonth('created_at', $request->bulan);
         }
 
+        // Filter Tahun
         if ($request->filled('tahun') && is_numeric($request->tahun)) {
             $query->whereYear('created_at', $request->tahun);
         }
 
         $pengiriman = $query->paginate(10);
 
+        // Daftar Tahun untuk Filter
         $daftarTahun = Pengiriman::select(DB::raw('YEAR(created_at) as tahun'))
             ->distinct()
             ->orderBy('tahun', 'desc')
@@ -44,18 +47,18 @@ class PengirimanController extends Controller
             $daftarTahun = [now()->year];
         }
 
-        return view('admin.pengiriman.index', compact('pengiriman', 'daftarTahun'));
-    }
-
-    public function create()
-    {
+        // Ambil data untuk Modal Tambah Pengiriman
         $pesanan = Pesanan::where('status_pesanan', 'menunggu')->get();
-
         $driver = Pengguna::where('peran', 'driver')
             ->where('status', 'aktif')
             ->get();
 
-        return view('admin.pengiriman.tambah', compact('pesanan', 'driver'));
+        return view('admin.pengiriman.index', compact('pengiriman', 'daftarTahun', 'pesanan', 'driver'));
+    }
+
+    public function create()
+    {
+        return redirect()->route('admin.pengiriman.index');
     }
 
     public function store(Request $request)
@@ -88,24 +91,24 @@ class PengirimanController extends Controller
 
         $pesanan = Pesanan::find($request->pesanan_id);
         
-       $jumlahPengiriman = Pengiriman::where('driver_id', $request->driver_id)
+        $jumlahPengiriman = Pengiriman::where('driver_id', $request->driver_id)
             ->where('status_pengiriman', 'proses')
             ->count();
 
         NotifikasiService::keDriver(
-            $request->driver_id,
-            'Penugasan Pengiriman Baru',
-            "Anda memiliki {$jumlahPengiriman} pengiriman yang harus dikirimkan.",
-            'penugasan_driver',
-            $pengiriman->id
+            (int) $request->driver_id, 
+            'Penugasan Pengiriman Baru', 
+            "Anda memiliki {$jumlahPengiriman} pengiriman yang harus dikirimkan.", 
+            'pengiriman', 
+            $pengiriman->id 
         );
 
         NotifikasiService::kePelanggan(
-            $pesanan->pelanggan_id,
-            'Pesanan Sedang Diproses',
-            "Pesanan Anda sedang dalam proses pengiriman oleh driver.",
-            'pesanan_proses',
-            $pesanan->id
+            (int) $pesanan->pelanggan_id, 
+            'Pesanan Sedang Diproses', 
+            "Pesanan Anda sedang dalam proses pengiriman oleh driver.", 
+            'pesanan', 
+            $pesanan->id 
         );
 
         return redirect()->route('admin.pengiriman.index')
@@ -114,14 +117,12 @@ class PengirimanController extends Controller
 
     public function show(Pengiriman $pengiriman)
     {
-        $pengiriman->load(['pesanan.pelanggan', 'driver']); 
-        return view('admin.pengiriman.show', compact('pengiriman'));
+        return redirect()->route('admin.pengiriman.index');
     }
 
     public function edit(Pengiriman $pengiriman)
     {
-        $pengiriman->load(['pesanan', 'driver']);
-        return view('admin.pengiriman.edit', compact('pengiriman'));
+        return redirect()->route('admin.pengiriman.index');
     }
 
     public function update(Request $request, Pengiriman $pengiriman)
@@ -145,6 +146,15 @@ class PengirimanController extends Controller
             $pengiriman->pesanan->update([
                 'status_pesanan' => 'selesai'
             ]);
+
+            NotifikasiService::kirim(
+                (int) $pengiriman->pesanan->pelanggan_id, 
+                'Pesanan Telah Selesai', 
+                'Pesanan Anda telah berhasil dikirimkan. Terima kasih!', 
+                'pengiriman', 
+                $pengiriman->id, 
+                'Pengiriman' 
+            );
         }
 
         $pengiriman->update($data);
@@ -156,9 +166,6 @@ class PengirimanController extends Controller
     public function destroy(Pengiriman $pengiriman)
     {
         $pengiriman->delete();
-
         return back()->with('success', 'Pengiriman berhasil dihapus');
     }
-
-
 }

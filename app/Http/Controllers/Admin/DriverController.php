@@ -17,7 +17,7 @@ class DriverController extends Controller
 
     public function create()
     {
-        return view('admin.driver.tambah');
+        return view('admin.driver.index');
     }
 
     public function store(Request $request)
@@ -35,7 +35,7 @@ class DriverController extends Controller
             'nomor_telepon' => $request->nomor_telepon,
             'password'      => Hash::make($request->password),
             'peran'         => 'driver',
-            'status'        => 'aktif',
+            'status'        => $request->status ?? 'aktif',
         ]);
 
         return redirect()->route('admin.driver.index')
@@ -44,12 +44,12 @@ class DriverController extends Controller
 
     public function show(Pengguna $driver)
     {
-        return view('admin.driver.show', compact('driver'));
+        return view('admin.driver.index');
     }
 
     public function edit(Pengguna $driver)
     {
-        return view('admin.driver.edit', compact('driver'));
+        return view('admin.driver.index');
     }
 
     public function update(Request $request, Pengguna $driver)
@@ -88,19 +88,7 @@ class DriverController extends Controller
         $driver->update(['status' => 'nonaktif']);
         return back()->with('success', 'Driver berhasil dinonaktifkan');
     }
-
-    public function editModal($id)
-    {
-        $driver = Pengguna::findOrFail($id);
-        return view('admin.driver.partials.edit-modal', compact('driver'));
-    }
-
-    public function detailModal($id)
-    {
-        $driver = Pengguna::findOrFail($id);
-        return view('admin.driver.partials.detail-modal', compact('driver'));
-    }
-    
+   
     public function pesanan(Request $request)
     {
         $driver = $request->user();
@@ -111,6 +99,4 @@ class DriverController extends Controller
             'pesanan' => $pesanan
         ]);
     }
-
-
 }

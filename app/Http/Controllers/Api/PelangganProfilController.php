@@ -18,7 +18,7 @@ class PelangganProfilController extends Controller
                 'id'            => $pelanggan->id,
                 'nama_lengkap'  => $pelanggan->nama_lengkap ?? $pelanggan->name,
                 'email'         => $pelanggan->email,
-                'telepon'       => $pelanggan->nomor_telepon,
+                'nomor_telepon'       => $pelanggan->nomor_telepon,
                 'alamat'        => $pelanggan->alamat ?? '',
             ]
         ]);

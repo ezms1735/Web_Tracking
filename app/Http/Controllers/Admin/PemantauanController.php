@@ -13,14 +13,12 @@ class PemantauanController extends Controller
     {
         $today = Carbon::today();
 
-        // Pengiriman punya driver
         $pengirimanAktif = Pengiriman::with(['driver', 'pesanan.pelanggan'])
             ->whereNotNull('driver_id')
             ->latest()
             ->get()
             ->groupBy('driver_id');
 
-        // Pengiriman hari ini
         $pengirimanHariIni = Pengiriman::with(['driver', 'pesanan.pelanggan'])
             ->whereNotNull('driver_id')
             ->whereDate('waktu_mulai', $today)
@@ -30,7 +28,6 @@ class PemantauanController extends Controller
 
         $markers = [];
 
-        // Ambil data lokasi dari Firebase 
         try {
             $database = app('firebase.database');
             $reference = $database->getReference('drivers');

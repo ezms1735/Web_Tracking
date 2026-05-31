@@ -17,7 +17,7 @@ class PelangganController extends Controller
 
     public function create()
     {
-        return view('admin.pelanggan.tambah');
+        return view('admin.pelanggan.index');
     }
 
     public function store(Request $request)
@@ -26,7 +26,7 @@ class PelangganController extends Controller
             'nama_lengkap'  => 'required',
             'email'         => 'required|email|unique:pengguna,email',
             'nomor_telepon' => 'required',
-            'alamat'        => 'required',
+            'alamat'        => 'nullable',
             'password'      => 'required|min:6',
         ]);
 
@@ -46,12 +46,12 @@ class PelangganController extends Controller
 
     public function show(Pengguna $pelanggan)
     {
-        return view('admin.pelanggan.show', compact('pelanggan'));
+        return view('admin.pelanggan.index');
     }
 
     public function edit(Pengguna $pelanggan)
     {
-        return view('admin.pelanggan.edit', compact('pelanggan'));
+        return view('admin.pelanggan.index');
     }
 
     public function update(Request $request, Pengguna $pelanggan)

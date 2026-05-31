@@ -13,7 +13,6 @@ class LoginController extends Controller
         return view('admin.login');
     }
 
-    // proses login
     public function login(Request $request)
     {
         $request->validate([
@@ -40,7 +39,6 @@ class LoginController extends Controller
         ]);
     }
 
-    // logout
     public function logout()
     {
         Auth::logout();

@@ -70,7 +70,7 @@ class PelangganController extends Controller
                     'waktu_selesai'   => $p->pengiriman?->waktu_selesai,
                     'nama_driver'     => $p->pengiriman?->driver?->nama_lengkap,
                     'nomor_telepon_driver' => $p->pengiriman?->driver?->nomor_telepon,
-                    'bukti_foto'      => $p->pengiriman?->bukti_foto ? asset('storage/' . $p->pengiriman->bukti_foto) : null,
+                    'bukti_foto'      => $p->pengiriman?->bukti_foto ,
                 ];
             });
 
