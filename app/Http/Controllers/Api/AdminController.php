@@ -16,7 +16,7 @@ class AdminController extends Controller
             'pesanan_id' => 'required|integer',
         ]);
 
-        $pesanan = Pesanan::find($request->pesanan_id);
+        $pesanan = Pesanan::with(['pelanggan', 'driver'])->find($request->pesanan_id);
 
         if (!$pesanan) {
             return response()->json([
@@ -32,7 +32,7 @@ class AdminController extends Controller
         NotifikasiService::keDriver(
             (int) $request->driver_id,
             'Penugasan Pengiriman Baru',
-            'Anda mendapat penugasan pengiriman baru. Segera cek daftar pesanan.',
+            "Anda memiliki pengiriman {$pesanan->jumlah_pesanan} pack ke {$pesanan->pelanggan->alamat}.",
             'penugasan_driver',
             $pesanan->id
         );
@@ -40,7 +40,7 @@ class AdminController extends Controller
         NotifikasiService::kePelanggan(
             (int) $pesanan->pelanggan_id,
             'Pesanan Sedang Diproses',
-            'Pesanan Anda sedang dalam proses pengiriman oleh driver.',
+            "Pesanan Anda sedang dalam proses pengiriman oleh driver {$pesanan->driver->nama}.",
             'pesanan_proses',
             $pesanan->id
         );

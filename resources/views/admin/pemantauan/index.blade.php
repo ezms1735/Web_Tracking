@@ -6,27 +6,21 @@
 <div class="p-6 max-w-7xl mx-auto">
     <h1 class="text-3xl font-bold text-gray-800 mb-8">Pemantauan Pengiriman Hari Ini</h1>
 
-    {{-- PETA KHUSUS MADIUN, MAGETAN, PONOROGO --}}
     <div id="map" class="w-full h-96 rounded-lg shadow-lg mb-8"></div>
 
     @if($pengirimanHariIni->isEmpty())
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-8 text-center">
-            <p class="text-blue-800 text-lg">
-                Belum ada pengiriman hari ini.
-            </p>
-            <p class="text-blue-600 mt-2">
-                Semua driver sedang istirahat atau belum ada tugas baru.
-            </p>
+            <p class="text-blue-800 text-lg">Belum ada pengiriman hari ini.</p>
+            <p class="text-blue-600 mt-2">Semua driver sedang istirahat atau belum ada tugas baru.</p>
         </div>
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style="align-items: start;">
             @foreach($pengirimanHariIni as $driver_id => $grupPengiriman)
                 @php
-                    $driver = $grupPengiriman->first()->driver;
+                    $driver           = $grupPengiriman->first()->driver;
                     $totalTugasHariIni = $grupPengiriman->count();
-                    $belumSelesai = $grupPengiriman->whereNull('waktu_selesai')->count();
-                    $sudahSelesai = $totalTugasHariIni - $belumSelesai;
-                    $statusUmum = $grupPengiriman->whereNull('waktu_selesai')->pluck('status_pengiriman')->unique()->implode(', ');
+                    $belumSelesai     = $grupPengiriman->whereNull('waktu_selesai')->count();
+                    $sudahSelesai     = $totalTugasHariIni - $belumSelesai;
                 @endphp
 
                 <div class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200">
@@ -63,7 +57,9 @@
                             <div class="mt-3 space-y-3">
                                 @foreach($grupPengiriman as $pengiriman)
                                     @php
-                                        $statusTugas = $pengiriman->waktu_selesai ? 'Selesai' : ($pengiriman->status_pengiriman == 'proses' ? 'Sedang Dikirim' : 'Belum Berangkat');
+                                        $statusTugas = $pengiriman->waktu_selesai
+                                            ? 'Selesai'
+                                            : ($pengiriman->status_pengiriman == 'proses' ? 'Sedang Dikirim' : 'Belum Berangkat');
                                         $warnaBorder = $pengiriman->waktu_selesai ? 'border-green-500' : 'border-blue-500';
                                     @endphp
                                     <div class="bg-gray-50 rounded-md p-3 border-l-4 {{ $warnaBorder }}">
@@ -96,6 +92,50 @@
         crossorigin=""></script>
 
 <script>
+    // =============================================
+    // DATA DARI PHP (nama driver sudah ada di sini)
+    // =============================================
+    var initialData = @json($markers);
+
+    // Buat lookup: { "13": "Faris", "12": "Zeka", dst }
+    var namaDriverMap = {};
+    initialData.forEach(function(item) {
+        namaDriverMap[String(item.id)] = item.nama;
+    });
+
+    // =============================================
+    // INISIALISASI PETA
+    // =============================================
+    var map = L.map('map').setView([-7.629, 111.52], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var driverMarkers = {};
+
+    // Pasang marker awal dari data PHP
+    initialData.forEach(function(item) {
+        var driverId = String(item.id);
+        if (!item.lat || !item.lng) return;
+
+        var marker = L.marker([item.lat, item.lng])
+            .addTo(map)
+            .bindPopup('<b>' + item.nama + '</b>');
+
+        driverMarkers[driverId] = marker;
+    });
+
+    // Fit bounds jika ada marker
+    if (Object.keys(driverMarkers).length > 0) {
+        var group = L.featureGroup(Object.values(driverMarkers));
+        map.fitBounds(group.getBounds().pad(0.4));
+    }
+
+    // =============================================
+    // FIREBASE REALTIME — hanya update POSISI
+    // Nama tetap diambil dari namaDriverMap (PHP)
+    // =============================================
     const firebaseConfig = {
         apiKey: "AIzaSyDxgGDwbLNCZeAyX3inFjsyG9BvM_Nkiag",
         authDomain: "moyakristal-1a81e.firebaseapp.com",
@@ -109,86 +149,40 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    var map = L.map('map').setView([-7.629, 111.52], 11);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-    }).addTo(map);
-
-    var driverMarkers = {};
-    var driverInfo = {};
-
-    var initialData = @json($markers);
-
-    initialData.forEach(function(item) {
-        var driverId = item.id || String(item.nama).replace(/\D/g, '') || 'unknown';
-
-        if (item.lat && item.lng) {
-            var marker = L.marker([item.lat, item.lng])
-                .addTo(map)
-                .bindPopup(`
-                    <b>${item.nama}</b><br>
-                    Sedang mengantar ${item.jumlah} tugas<br>
-                    <small>Loading realtime...</small>
-                `);
-
-            driverMarkers[driverId] = marker;
-            driverInfo[driverId] = {
-                nama: item.nama,
-                jumlah: item.jumlah
-            };
-        }
-    });
-
-    if (Object.keys(driverMarkers).length > 0) {
-        var group = L.featureGroup(Object.values(driverMarkers));
-        map.fitBounds(group.getBounds().pad(0.4));
-    }
-
-    const driversRef = db.ref('drivers');
-
-    driversRef.on('value', (snapshot) => {
+    db.ref('drivers').on('value', (snapshot) => {
         const drivers = snapshot.val() || {};
 
-        Object.keys(drivers).forEach(driverId => {
+        Object.keys(drivers).forEach(function(driverId) {
+            driverId = String(driverId);
             const data = drivers[driverId];
-            if (!data?.latitude || !data?.longitude) return;
+
+            if (!data || !data.latitude || !data.longitude) return;
 
             const lat = parseFloat(data.latitude);
             const lng = parseFloat(data.longitude);
             if (isNaN(lat) || isNaN(lng)) return;
 
-            const info = driverInfo[driverId] || { nama: `Driver ${driverId}`, jumlah: '?' };
-            const timeStr = data.updated_at 
-                ? new Date(data.updated_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute:'2-digit'})
-                : 'unknown';
-
-            const popup = `
-                <b>${info.nama}</b><br>
-                Sedang mengantar ${info.jumlah} tugas<br>
-                <small>Update: ${timeStr}</small>
-            `;
+            const nama = namaDriverMap[driverId] || ('Driver ' + driverId);
+            const popup = '<b>' + nama + '</b>';
 
             if (driverMarkers[driverId]) {
                 driverMarkers[driverId].setLatLng([lat, lng]);
                 driverMarkers[driverId].setPopupContent(popup);
             } else {
-                const marker = L.marker([lat, lng])
+                var marker = L.marker([lat, lng])
                     .addTo(map)
                     .bindPopup(popup);
                 driverMarkers[driverId] = marker;
-                driverInfo[driverId] = info;
             }
         });
 
-        Object.keys(driverMarkers).forEach(id => {
+        Object.keys(driverMarkers).forEach(function(id) {
             if (!drivers[id]) {
                 map.removeLayer(driverMarkers[id]);
                 delete driverMarkers[id];
-                delete driverInfo[id];
             }
         });
-    }, (error) => {
+    }, function(error) {
         console.error('Firebase realtime error:', error);
     });
 </script>

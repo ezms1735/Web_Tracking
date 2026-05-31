@@ -89,8 +89,8 @@ class PengirimanController extends Controller
         Pesanan::where('id', $request->pesanan_id)
             ->update(['status_pesanan' => 'proses']);
 
-        $pesanan = Pesanan::find($request->pesanan_id);
-        
+        $pesanan = Pesanan::with(['pelanggan', 'driver'])->find($request->pesanan_id);
+
         $jumlahPengiriman = Pengiriman::where('driver_id', $request->driver_id)
             ->where('status_pengiriman', 'proses')
             ->count();
@@ -98,7 +98,7 @@ class PengirimanController extends Controller
         NotifikasiService::keDriver(
             (int) $request->driver_id, 
             'Penugasan Pengiriman Baru', 
-            "Anda memiliki {$jumlahPengiriman} pengiriman yang harus dikirimkan.", 
+            "Anda memiliki pengiriman {$pesanan->jumlah_pesanan} pack ke {$pesanan->pelanggan->alamat}.", 
             'pengiriman', 
             $pengiriman->id 
         );
@@ -106,7 +106,7 @@ class PengirimanController extends Controller
         NotifikasiService::kePelanggan(
             (int) $pesanan->pelanggan_id, 
             'Pesanan Sedang Diproses', 
-            "Pesanan Anda sedang dalam proses pengiriman oleh driver.", 
+            "Pesanan Anda sedang dalam proses pengiriman oleh driver {$pesanan->driver->nama}.", 
             'pesanan', 
             $pesanan->id 
         );
