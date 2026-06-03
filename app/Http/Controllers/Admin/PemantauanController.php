@@ -32,7 +32,6 @@ class PemantauanController extends Controller
             $database = app('firebase.database');
             $reference = $database->getReference('drivers');
             $snapshot  = $reference->getSnapshot();
-
             $firebaseDrivers = $snapshot->getValue() ?? [];
         } catch (\Throwable $e) {
             Log::error('Firebase connection failed', [

@@ -20,6 +20,11 @@ class Pesanan extends Model
         return $this->belongsTo(Pengguna::class, 'pelanggan_id');
     }
 
+    public function driver()
+    {
+        return $this->belongsTo(Pengguna::class, 'driver_id');
+    }
+
     public function pengiriman()
     {
         return $this->hasOne(Pengiriman::class);

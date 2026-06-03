@@ -19,24 +19,20 @@ class PengirimanController extends Controller
             'driver'
         ])->latest();
 
-        // Filter Tanggal
         if ($request->filled('tanggal') && is_numeric($request->tanggal)) {
             $query->whereDay('created_at', $request->tanggal);
         }
 
-        // Filter Bulan
         if ($request->filled('bulan') && is_numeric($request->bulan)) {
             $query->whereMonth('created_at', $request->bulan);
         }
 
-        // Filter Tahun
         if ($request->filled('tahun') && is_numeric($request->tahun)) {
             $query->whereYear('created_at', $request->tahun);
         }
 
         $pengiriman = $query->paginate(10);
 
-        // Daftar Tahun untuk Filter
         $daftarTahun = Pengiriman::select(DB::raw('YEAR(created_at) as tahun'))
             ->distinct()
             ->orderBy('tahun', 'desc')
@@ -47,7 +43,6 @@ class PengirimanController extends Controller
             $daftarTahun = [now()->year];
         }
 
-        // Ambil data untuk Modal Tambah Pengiriman
         $pesanan = Pesanan::where('status_pesanan', 'menunggu')->get();
         $driver = Pengguna::where('peran', 'driver')
             ->where('status', 'aktif')
@@ -106,7 +101,7 @@ class PengirimanController extends Controller
         NotifikasiService::kePelanggan(
             (int) $pesanan->pelanggan_id, 
             'Pesanan Sedang Diproses', 
-            "Pesanan Anda sedang dalam proses pengiriman oleh driver {$pesanan->driver->nama}.", 
+            "Pesanan Anda sedang dalam proses pengiriman oleh driver {$pengiriman->driver->nama_lengkap}.", 
             'pesanan', 
             $pesanan->id 
         );

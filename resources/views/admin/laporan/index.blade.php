@@ -60,8 +60,8 @@
                     <tr>
                         <th class="px-6 py-4 font-semibold">Tanggal</th>
                         <th class="px-6 py-4 text-center font-semibold">Driver</th>
-                        <th class="px-6 py-4 text-center font-semibold">Total Pengiriman</th>
                         <th class="px-6 py-4 text-center font-semibold">Total Pelanggan</th>
+                        <th class="px-6 py-4 text-center font-semibold">Total Pengiriman</th>
                         <th class="px-6 py-4 text-center font-semibold">Aksi</th>
                     </tr>
                 </thead>
