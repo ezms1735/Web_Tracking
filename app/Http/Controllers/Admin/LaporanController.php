@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Pengiriman;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use Rap2hpoutre\FastExcel\FastExcel;
 
-use OpenSpout\Common\Entity\Style\Style;
-use OpenSpout\Common\Entity\Style\Border;
-use OpenSpout\Common\Entity\Style\BorderPart;
-use OpenSpout\Common\Entity\Style\CellAlignment;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
 class LaporanController extends Controller
 {
@@ -91,32 +92,11 @@ class LaporanController extends Controller
             if ($tahun) $query->whereYear('waktu_selesai', $tahun);
         }
 
-        $data = $query->get()->map(function ($item) {
-            return [
-                'Tanggal'               => $item->waktu_selesai
-                                            ? Carbon::parse($item->waktu_selesai)->format('d/m/Y')
-                                            : '-',
-                'Nama Driver'           => $item->driver->nama_lengkap ?? '-',
-                'No. Telepon Driver'    => $item->driver->nomor_telepon ?? '-',
-                'Nama Pelanggan'        => $item->pesanan?->pelanggan?->nama_lengkap ?? '-',
-                'No. Telepon Pelanggan' => $item->pesanan?->pelanggan?->nomor_telepon ?? '-',
-                'Alamat Pelanggan'      => $item->pesanan?->pelanggan?->alamat ?? '-',
-                'Jumlah Pesanan'        => $item->pesanan?->jumlah_pesanan ?? '-',
-                'Jumlah Terkirim'       => $item->jumlah_terkirim ?? '-',
-                'Bukti Foto (URL)'      => $item->bukti_foto
-                                            ? asset('storage/' . $item->bukti_foto)
-                                            : '-',
-                'Waktu Mulai'           => $item->waktu_mulai
-                                            ? Carbon::parse($item->waktu_mulai)->format('d/m/Y H:i')
-                                            : '-',
-                'Waktu Selesai'         => $item->waktu_selesai
-                                            ? Carbon::parse($item->waktu_selesai)->format('d/m/Y H:i')
-                                            : '-',
-            ];
-        });
+        $pengiriman = $query->get();
 
+        // Tentukan nama file
         if ($driverId && $tanggal) {
-            $namaDriver = $data->first()['Nama Driver'] ?? 'Driver';
+            $namaDriver = $pengiriman->first()?->driver?->nama_lengkap ?? 'Driver';
             $namaFile = 'Laporan_' . str_replace(' ', '_', $namaDriver) . '_' . $tanggal . '.xlsx';
         } elseif ($bulan && $tahun) {
             $namaFile = 'Laporan_' . Carbon::create($tahun, $bulan)->format('F_Y') . '.xlsx';
@@ -124,30 +104,130 @@ class LaporanController extends Controller
             $namaFile = 'Laporan_Semua_Pengiriman.xlsx';
         }
 
-     //Konfigurasi Excel
-        $border = new Border(
-            new BorderPart('left', '000000', 'thin', 'solid'),
-            new BorderPart('right', '000000', 'thin', 'solid'),
-            new BorderPart('top', '000000', 'thin', 'solid'),
-            new BorderPart('bottom', '000000', 'thin', 'solid')
-        );
-        
-        $headerStyle = (new Style())
-            ->setFontBold()
-            ->setFontSize(12)
-            ->setBorder($border)
-            ->setBackgroundColor('92D050') 
-            ->setCellAlignment(CellAlignment::CENTER); 
+        // ============== BUAT SPREADSHEET ==============
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Laporan');
 
+        // Header kolom
+        $headers = [
+            'A' => 'Tanggal',
+            'B' => 'Nama Driver',
+            'C' => 'No. Telepon Driver',
+            'D' => 'Nama Pelanggan',
+            'E' => 'No. Telepon Pelanggan',
+            'F' => 'Alamat Pelanggan',
+            'G' => 'Jumlah Pesanan',
+            'H' => 'Jumlah Terkirim',
+            'I' => 'Bukti Foto',
+            'J' => 'Waktu Mulai',
+            'K' => 'Waktu Selesai',
+        ];
 
-        $rowsStyle = (new Style())
-            ->setFontSize(11)
-            ->setShouldWrapText(false) 
-            ->setBorder($border);
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue($col . '1', $label);
+        }
 
-        return (new FastExcel($data))
-            ->headerStyle($headerStyle)
-            ->rowsStyle($rowsStyle)
-            ->download($namaFile);
+        // Style header
+        $headerStyle = [
+            'font' => ['bold' => true, 'size' => 12],
+            'fill' => [
+                'fillType'   => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '92D050'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical'   => Alignment::VERTICAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+            ],
+        ];
+        $sheet->getStyle('A1:K1')->applyFromArray($headerStyle);
+
+        // Lebar kolom
+        $sheet->getColumnDimension('A')->setWidth(14);
+        $sheet->getColumnDimension('B')->setWidth(22);
+        $sheet->getColumnDimension('C')->setWidth(18);
+        $sheet->getColumnDimension('D')->setWidth(22);
+        $sheet->getColumnDimension('E')->setWidth(18);
+        $sheet->getColumnDimension('F')->setWidth(30);
+        $sheet->getColumnDimension('G')->setWidth(14);
+        $sheet->getColumnDimension('H')->setWidth(14);
+        $sheet->getColumnDimension('I')->setWidth(18);
+        $sheet->getColumnDimension('J')->setWidth(18);
+        $sheet->getColumnDimension('K')->setWidth(18);
+
+        $rowsStyle = [
+            'font' => ['size' => 11],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ];
+
+        $row = 2;
+
+        foreach ($pengiriman as $item) {
+            $sheet->setCellValue('A' . $row, $item->waktu_selesai
+                ? Carbon::parse($item->waktu_selesai)->format('d/m/Y')
+                : '-');
+            $sheet->setCellValue('B' . $row, $item->driver->nama_lengkap ?? '-');
+            $sheet->setCellValue('C' . $row, $item->driver->nomor_telepon ?? '-');
+            $sheet->setCellValue('D' . $row, $item->pesanan?->pelanggan?->nama_lengkap ?? '-');
+            $sheet->setCellValue('E' . $row, $item->pesanan?->pelanggan?->nomor_telepon ?? '-');
+            $sheet->setCellValue('F' . $row, $item->pesanan?->pelanggan?->alamat ?? '-');
+            $sheet->setCellValue('G' . $row, $item->pesanan?->jumlah_pesanan ?? '-');
+            $sheet->setCellValue('H' . $row, $item->jumlah_terkirim ?? '-');
+            $sheet->setCellValue('J' . $row, $item->waktu_mulai
+                ? Carbon::parse($item->waktu_mulai)->format('d/m/Y H:i')
+                : '-');
+            $sheet->setCellValue('K' . $row, $item->waktu_selesai
+                ? Carbon::parse($item->waktu_selesai)->format('d/m/Y H:i')
+                : '-');
+
+            // Tinggi baris agar muat gambar
+            $sheet->getRowDimension($row)->setRowHeight(80);
+
+            // Embed gambar bukti foto
+            if ($item->bukti_foto) {
+                $path = storage_path('app/public/' . $item->bukti_foto);
+
+                if (file_exists($path)) {
+                    $drawing = new Drawing();
+                    $drawing->setName('Bukti Foto');
+                    $drawing->setPath($path);
+                    $drawing->setHeight(100);
+                    $drawing->setCoordinates('I' . $row);
+                    $drawing->setOffsetX(5);
+                    $drawing->setOffsetY(5);
+                    $drawing->setWorksheet($sheet);
+                } else {
+                    $sheet->setCellValue('I' . $row, 'Foto tidak ditemukan');
+                }
+            } else {
+                $sheet->setCellValue('I' . $row, '-');
+            }
+
+            $row++;
+        }
+
+        // Apply border ke semua data
+        $lastRow = $row - 1;
+        if ($lastRow >= 2) {
+            $sheet->getStyle('A2:K' . $lastRow)->applyFromArray($rowsStyle);
+        }
+
+        // ============== OUTPUT ==============
+        $writer = new Xlsx($spreadsheet);
+
+        return response()->streamDownload(function () use ($writer) {
+            $writer->save('php://output');
+        }, $namaFile, [
+            'Content-Type'  => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }

@@ -92,20 +92,14 @@
         crossorigin=""></script>
 
 <script>
-    // =============================================
-    // DATA DARI PHP (nama driver sudah ada di sini)
-    // =============================================
     var initialData = @json($markers);
 
-    // Buat lookup: { "13": "Faris", "12": "Zeka", dst }
     var namaDriverMap = {};
     initialData.forEach(function(item) {
         namaDriverMap[String(item.id)] = item.nama;
     });
 
-    // =============================================
-    // INISIALISASI PETA
-    // =============================================
+    // peta
     var map = L.map('map').setView([-7.629, 111.52], 11);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -114,7 +108,6 @@
 
     var driverMarkers = {};
 
-    // Pasang marker awal dari data PHP
     initialData.forEach(function(item) {
         var driverId = String(item.id);
         if (!item.lat || !item.lng) return;
@@ -126,16 +119,11 @@
         driverMarkers[driverId] = marker;
     });
 
-    // Fit bounds jika ada marker
     if (Object.keys(driverMarkers).length > 0) {
         var group = L.featureGroup(Object.values(driverMarkers));
         map.fitBounds(group.getBounds().pad(0.4));
     }
 
-    // =============================================
-    // FIREBASE REALTIME — hanya update POSISI
-    // Nama tetap diambil dari namaDriverMap (PHP)
-    // =============================================
     const firebaseConfig = {
         apiKey: "AIzaSyDxgGDwbLNCZeAyX3inFjsyG9BvM_Nkiag",
         authDomain: "moyakristal-1a81e.firebaseapp.com",
